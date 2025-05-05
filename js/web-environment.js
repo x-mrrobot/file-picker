@@ -13,13 +13,10 @@ const webEnvironment = {
     }
   },
   exitApplication(clearCache) {
-    Logger.debug("EnvironmentManager", "Fechando aplicação...");
+    alert("Closing application...");
     clearCache();
   },
   returnSelectedItems(selectedItems) {
-    Logger.debug(
-      "EnvironmentManager",
-      `Retornando items selecionados: ${selectedItems.join("|||")}`
-    );
+    alert(`Selected items:\n\n${selectedItems.join("\n")}`);
   }
 };

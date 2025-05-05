@@ -514,7 +514,6 @@ const TaskQueue = (function () {
 const UIRenderer = (function () {
   function updateActiveStorageDevice() {
     const currentPath = NavigationManager.getCurrentPath();
-    console.log(currentPath);
     const storageDevices = document.querySelectorAll(".storage-device");
 
     storageDevices.forEach(device => {
@@ -538,7 +537,7 @@ const UIRenderer = (function () {
     const isInternalStorage = storagePath.includes("emulated/0");
 
     const deviceData = {
-      title: isInternalStorage ? "Armazenamento" : "Cartão SD",
+      title: isInternalStorage ? "Internal Storage" : "SD Card",
       icon: isInternalStorage ? "fa-mobile" : "fa-sd-card",
       className: isInternalStorage ? "internal-storage" : "external-storage"
     };
@@ -570,8 +569,8 @@ const UIRenderer = (function () {
       const displayName =
         index === 0
           ? directory === "/storage/emulated/0"
-            ? "Armazenamento interno"
-            : "Cartão SD"
+            ? "Internal Storage"
+            : "SD Card"
           : directory;
 
       const separator = index === 0 ? "" : '<span class="separator">»</span>';
@@ -974,11 +973,13 @@ const SelectionManager = (function () {
       navigator.clipboard
         .writeText(selectedData.join(","))
         .then(() => {
-          alert(`${selectedData.length} itens copiados com sucesso!`);
+          alert(`${selectedData.length} items copied successfully!`);
         })
         .catch(err => {
-          alert("Erro ao copiar itens para a área de transferência");
+          alert("Error copying items to the clipboard");
         });
+    } else {
+      alert("No item selected copy.")
     }
   }
 
