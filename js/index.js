@@ -187,15 +187,14 @@ const CacheManager = (function () {
 
   function getCache() {
     try {
-      return JSON.parse(localStorage.getItem("fileBrowser_cache") || "{}");
+      return JSON.parse(localStorage.getItem("@file-picker") || "{}");
     } catch (error) {
-      Logger.error("CacheManager", "Erro ao ler cache:", error);
       return {};
     }
   }
 
   function saveCache(cacheData) {
-    localStorage.setItem("fileBrowser_cache", JSON.stringify(cacheData));
+    localStorage.setItem("@file-picker", JSON.stringify(cacheData));
   }
 
   function isValid(path) {
@@ -207,11 +206,6 @@ const CacheManager = (function () {
       if (!entry) return false;
       return Date.now() - entry.timestamp < config.expirationTime;
     } catch (error) {
-      Logger.error(
-        "CacheManager",
-        "Erro ao verificar validade do cache:",
-        error
-      );
       return false;
     }
   }
@@ -229,7 +223,6 @@ const CacheManager = (function () {
         subfolderData: entry.subfolderData
       };
     } catch (error) {
-      Logger.error("CacheManager", "Erro ao recuperar dados do cache:", error);
       return null;
     }
   }
@@ -259,9 +252,7 @@ const CacheManager = (function () {
       } else {
         saveCache(cache);
       }
-    } catch (error) {
-      Logger.error("CacheManager", "Erro ao salvar no cache:", error);
-    }
+    } catch (error) {}
   }
 
   function commitSubfolderItemCounts(path, subfolderData) {
@@ -283,23 +274,11 @@ const CacheManager = (function () {
       cache[dirKey].timestamp = Date.now();
 
       saveCache(cache);
-
-      Logger.debug(
-        "CacheManager",
-        `Todas as contagens de subpastas para ${path} foram salvas no cache`
-      );
-    } catch (error) {
-      Logger.error(
-        "CacheManager",
-        "Erro ao salvar contagens de subpastas no cache:",
-        error
-      );
-    }
+    } catch (error) {}
   }
 
   function clear() {
-    localStorage.removeItem("fileBrowser_cache");
-    Logger.debug("CacheManager", "Cache limpo com sucesso");
+    localStorage.removeItem("@file-picker");
   }
 
   return {
@@ -369,7 +348,6 @@ const FileManager = (function (env) {
 
   function getFileList(directory) {
     const cachedData = CacheManager.get(directory);
-    Logger.debug("FileManager", `Dados em cache para ${directory}`, cachedData);
 
     if (cachedData) {
       if (cachedData.subfolderData) {
@@ -384,11 +362,6 @@ const FileManager = (function (env) {
       CacheManager.save(directory, parsedData, {});
       return parsedData;
     } catch (error) {
-      Logger.error(
-        "FileManager",
-        `Erro ao listar diretório ${directory}`,
-        error
-      );
       return [];
     }
   }
@@ -448,22 +421,11 @@ const TaskProcessor = (function (env) {
       .then(itemCount => {
         UIRenderer.updateSubfolderCount(task.subfolder, itemCount);
       })
-      .catch(error => {
-        Logger.error(
-          "TaskProcessor",
-          `Erro ao obter contagem de itens para ${task.subfolder}`,
-          error
-        );
-      })
+      .catch(error => {})
       .finally(() => {
         const totalActiveSubfolders = TaskQueue.getActiveCount();
 
         if (totalActiveSubfolders <= 1) {
-          Logger.debug(
-            "TaskProcessor",
-            `Todas as tarefas de contagem de subpastas para ${task.directory} concluídas`
-          );
-
           CacheManager.commitSubfolderItemCounts(
             task.directory,
             AppState.file.subfolderData
@@ -516,10 +478,6 @@ const TaskQueue = (function () {
     if (checkAndUpdatePath()) return;
 
     state.activeCount++;
-    Logger.debug(
-      "TaskQueue",
-      `Processando tarefa: ${task.type} (${state.activeCount}/${config.maxConcurrentProcessing} ativos)`
-    );
 
     const processingDone = () => {
       state.activeCount--;
@@ -535,18 +493,10 @@ const TaskQueue = (function () {
     if (checkAndUpdatePath()) return;
 
     state.queue.push(task);
-    Logger.debug(
-      "TaskQueue",
-      `Tarefa adicionada à fila: ${state.queue.length} tarefas pendentes`
-    );
     processNext();
   }
 
   function clearQueue() {
-    Logger.debug(
-      "TaskQueue",
-      `Limpando fila: ${state.queue.length} tarefas pendentes`
-    );
     state.queue = [];
     state.activeCount = 0;
     state.currentDirectory = NavigationManager.getCurrentPath();
@@ -693,7 +643,6 @@ const UIRenderer = (function () {
     }
   }
 
-  // Configuração de listeners de eventos do AppState
   AppState.on("PATH_HISTORY_CHANGE", () => {
     UIRenderer.updateActiveStorageDevice();
     updatePathDisplay();
@@ -752,7 +701,6 @@ const NavigationManager = (function (env) {
     const fullDirPath = FileManager.buildFullPath(folderName);
     const newHistory = [...AppState.file.pathHistory, folderName];
     AppState.setPathHistory(newHistory);
-    Logger.debug("NavigationManager", `Navegando para: ${fullDirPath}`);
     navigateToPath(fullDirPath);
   }
 
@@ -762,14 +710,9 @@ const NavigationManager = (function (env) {
       AppState.setPathHistory(newHistory);
 
       const currentPath = newHistory.join("/");
-      Logger.debug(
-        "NavigationManager",
-        `Navegando para o índice ${index}: ${currentPath}`
-      );
       navigateToPath(currentPath);
       return true;
     }
-    Logger.error("NavigationManager", `Índice inválido: ${index}`);
     return false;
   }
 
@@ -788,7 +731,6 @@ const NavigationManager = (function (env) {
       const newHistory = AppState.file.pathHistory.slice(0, -1);
       AppState.setPathHistory(newHistory);
       const currentPath = newHistory.join("/");
-      Logger.debug("NavigationManager", `Voltando para: ${currentPath}`);
       navigateToPath(currentPath);
       return true;
     }
@@ -1035,7 +977,6 @@ const SelectionManager = (function () {
           alert(`${selectedData.length} itens copiados com sucesso!`);
         })
         .catch(err => {
-          Logger.error("SelectionManager", "Erro ao copiar itens:", err);
           alert("Erro ao copiar itens para a área de transferência");
         });
     }
@@ -1053,7 +994,6 @@ const EventManager = (function (env) {
   function setupEventListeners() {
     const dom = DOMElements;
 
-    // Listeners para navegação
     dom.currentPath.addEventListener("click", () => {
       const pathItem = event.target.closest("[data-index]");
       if (!pathItem) return;
@@ -1099,7 +1039,6 @@ const EventManager = (function (env) {
       }
     });
 
-    // Listeners para seleção
     dom.selectionCounter.addEventListener("click", () => {
       SelectionManager.toggleAllItems();
     });
@@ -1117,7 +1056,6 @@ const EventManager = (function (env) {
       SelectionManager.copySelectedToClipboard();
     });
 
-    // Listeners para pesquisa
     dom.searchButton.addEventListener("click", () => {
       SearchManager.openSearch();
     });
@@ -1136,88 +1074,18 @@ const EventManager = (function (env) {
   };
 })(currentEnvironment);
 
-const Logger = (function () {
-  const logLevels = {
-    DEBUG: 0,
-    INFO: 1,
-    ERROR: 3
-  };
-
-  const config = {
-    enabled: true,
-    minLevel: logLevels.DEBUG,
-    useConsole: true,
-    maxEntries: 100
-  };
-
-  function formatLogMessage(module, message, data) {
-    const timestamp = new Date().toLocaleString("en-GB", {
-      hour12: false
-    });
-    let formattedMessage = `[${timestamp}] [${module}] ${message}`;
-
-    if (data !== undefined) {
-      if (typeof data === "object") {
-        formattedMessage += " " + JSON.stringify(data);
-      } else {
-        formattedMessage += " " + String(data);
-      }
-    }
-
-    return formattedMessage;
-  }
-
-  function log(level, module, message, data) {
-    if (!config.enabled || level < config.minLevel) return;
-
-    const formattedMessage = formatLogMessage(module, message, data);
-
-    if (config.useConsole) {
-      switch (level) {
-        case logLevels.DEBUG:
-          console.debug(formattedMessage);
-          break;
-        case logLevels.INFO:
-          console.info(formattedMessage);
-          break;
-        case logLevels.ERROR:
-          console.error(formattedMessage);
-          break;
-      }
-    }
-  }
-
-  return {
-    debug: (module, message, data) =>
-      log(logLevels.DEBUG, module, message, data),
-    info: (module, message, data) => log(logLevels.INFO, module, message, data),
-    error: (module, message, data) =>
-      log(logLevels.ERROR, module, message, data)
-  };
-})();
-
 const App = (function (env) {
   function updateStoragePaths() {
-    Logger.debug("App", "Atualizando caminhos de armazenamento");
-
     AppState.addStoragePath("/storage/emulated/0");
 
     const sdCardPath = FileManager.getSdCard();
 
     if (sdCardPath) {
-      Logger.debug("App", `Cartão SD detectado: ${sdCardPath}`);
       AppState.addStoragePath(sdCardPath);
     }
-
-    Logger.info(
-      "App",
-      `Dispositivos detectados: ${AppState.file.storagePaths.length}`
-    );
   }
 
   function initialize() {
-    Logger.info("App", "Inicializando aplicativo");
-
     updateStoragePaths();
     EventManager.setupEventListeners();
     NavigationManager.goToFolder(AppState.file.storagePaths[0]);
