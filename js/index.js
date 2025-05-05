@@ -988,6 +988,11 @@ const SelectionManager = (function () {
     const fullItemPath = FileManager.buildFullPath(itemName);
     if (AppState.file.selectedItems.has(fullItemPath)) {
       AppState.file.selectedItems.delete(fullItemPath);
+
+      if (AppState.file.selectedItems.size === 0) {
+        AppState.toggleSelectionMode(false);
+        return;
+      }
     } else {
       AppState.file.selectedItems.add(fullItemPath);
     }
