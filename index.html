@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Picker</title>
+
+    <!-- STYLES -->
+    <link rel="stylesheet" href="/css/index.css" />
+
+    <!-- CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+
+    <!-- SCRIPTS -->
+    <script src="/js/data.js" defer></script>
+    <script src="/js/index.js" defer></script>
+  </head>
+  <body>
+    <div class="app">
+      <!-- HEADER -->
+      <header class="header">
+        <!-- STORAGE -->
+        <section class="header-storage">
+          <article class="storage-device" data-storage="/storage/emulated/0">
+            <div class="device-icon">
+              <i class="fas fa-mobile"></i>
+            </div>
+            <h2 class="device-name">Armazenamento</h2>
+          </article>
+        </section>
+
+        <!-- NAVIGATION -->
+        <section class="header-nav">
+          <button class="back-btn">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
+          <nav class="path-nav" id="current-path"></nav>
+
+          <!-- SEARCH -->
+          <div class="search-container" id="search-container">
+            <input
+              type="text"
+              class="search-input"
+              id="search-input"
+              placeholder="Pesquisar arquivos e pastas..."
+            />
+            <button class="close-search-btn" id="close-search-btn">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <button class="search-btn" id="search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </section>
+      </header>
+
+      <!-- MAIN -->
+      <main class="file-list" id="file-list"></main>
+
+      <!-- FOOTER -->
+      <footer class="footer">
+        <!-- ACTIONS -->
+        <div class="footer-actions">
+          <button class="action-btn" data-action="select-all">0</button>
+
+          <button class="action-btn" data-action="select">
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="action-btn" data-action="copy">
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
+
+        <!-- SELECTION -->
+        <button class="floating-btn" id="selection-toggle">
+          <i class="fas fa-check"></i>
+        </button>
+      </footer>
+    </div>
+  </body>
+</html>
