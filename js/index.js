@@ -458,7 +458,7 @@ const FileManager = (function (env) {
   }
 
   function getSdCard() {
-    return env.executeCommand("get_sd_card");
+    return env.execute("get_sd_card");
   }
 
   function parseDirectoryOutput(rawData) {
@@ -485,7 +485,7 @@ const FileManager = (function (env) {
     }
 
     try {
-      const output = env.executeCommand("list_directory", `"${directory}"`);
+      const output = env.execute("list_directory", `"${directory}"`);
       const parsedData = parseDirectoryOutput(output);
       CacheManager.save(directory, parsedData, {});
       return parsedData;
@@ -529,7 +529,7 @@ const TaskProcessor = (function (env) {
 
       setTimeout(() => {
         try {
-          const output = env.executeCommand(
+          const output = env.execute(
             "get_subfolder_item_count",
             `"${directory}/${subfolder}"`
           );
@@ -866,7 +866,7 @@ const NavigationManager = (function (env) {
       navigateToPath(currentPath);
       return true;
     }
-    env.exitApplication(CacheManager.clear);
+    env.terminate(CacheManager.clear);
   }
 
   return {
@@ -1187,7 +1187,7 @@ const EventManager = (function (env) {
 
     dom.selectButton.addEventListener("click", () => {
       const selectedItems = FileManager.getSelectedItems();
-      env.returnSelectedItems(selectedItems);
+      env.submitSelection(selectedItems);
     });
 
     dom.selectionToggle.addEventListener("click", () => {

@@ -1,27 +1,30 @@
 const webEnvironment = {
   name: "web",
 
-  executeCommand(command, ...params) {
-    switch (command) {
-      case "get_sd_card":
-        return "/storage/E4F1-7FD9";
-      case "list_directory":
-        return fileSystemData;
-      case "get_subfolder_item_count":
-        const dir = params[0].replaceAll('"', "");
-        const baseDir = dir.replace(/\/.+\//g, "");
-        return subfolderData[baseDir];
-    }
+  execute(cmd, ...args) {
+    const commands = {
+      get_sd_card: () => "/storage/E4F1-7FD9",
+      list_directory: () => fileSystemData,
+      get_subfolder_item_count: dir => {
+        const path = (dir || "").replaceAll('"', "");
+        const base = path.replace(/\/.+\//g, "");
+        return subfolderData[base] || 0;
+      }
+    };
+    const fn = commands[cmd];
+
+    if (!fn) return;
+    return fn(...args);
   },
-  exitApplication(clearCache) {
+
+  terminate() {
     alert(I18nManager.translate("app_close"));
-    clearCache();
+    CacheManager.clear();
   },
-  returnSelectedItems(selectedItems) {
-    alert(
-      `${I18nManager.translate("items_selected")}\n\n${selectedItems.join(
-        "\n"
-      )}`
-    );
+
+  submitSelection(items) {
+    const msg = I18nManager.translate("items_selected");
+    const formattedItems = items.join("\n");
+    alert(`${msg}\n\n${formattedItems}`);
   }
 };
