@@ -1,5 +1,6 @@
 const webEnvironment = {
   name: "web",
+  system_locale: null,
 
   execute(cmd, ...args) {
     const commands = {
@@ -13,7 +14,7 @@ const webEnvironment = {
     };
     const fn = commands[cmd];
 
-    if (!fn) return;
+    if (!fn) throw new Error(`Invalid command: ${cmd}`);
     return fn(...args);
   },
 

@@ -8,7 +8,7 @@ const EnvironmentManager = (function () {
 
 const currentEnvironment = EnvironmentManager.getCurrent();
 
-const I18nManager = (function () {
+const I18nManager = (function (env) {
   const state = {
     currentLocale: "pt-BR",
     translations: {},
@@ -16,7 +16,7 @@ const I18nManager = (function () {
   };
 
   function detectSystemLocale() {
-    return navigator.language || state.fallbackLocale;
+    return env.system_locale || navigator.language || state.fallbackLocale;
   }
 
   async function loadTranslations(locale) {
@@ -134,7 +134,7 @@ const I18nManager = (function () {
     translate,
     translatePlural
   };
-})();
+})(currentEnvironment);
 
 const AppState = (function () {
   const state = {
