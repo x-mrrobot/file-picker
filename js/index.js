@@ -8,6 +8,134 @@ const EnvironmentManager = (function () {
 
 const currentEnvironment = EnvironmentManager.getCurrent();
 
+const I18nManager = (function () {
+  const state = {
+    currentLocale: "pt-BR",
+    translations: {},
+    fallbackLocale: "en-US"
+  };
+
+  function detectSystemLocale() {
+    return navigator.language || state.fallbackLocale;
+  }
+
+  async function loadTranslations(locale) {
+    try {
+      const supportedLocales = ["pt-BR", "en-US", "es-ES"];
+      const baseLocale = locale.split("-")[0];
+      const matchedLocale =
+        supportedLocales.find(l => l.startsWith(baseLocale)) ||
+        state.fallbackLocale;
+
+      state.translations[matchedLocale] =
+        await fetchTranslations(matchedLocale);
+      return matchedLocale;
+    } catch (error) {
+      return state.fallbackLocale;
+    }
+  }
+
+  function fetchTranslations(locale) {
+    const translations = {
+      "pt-BR": {
+        app_title: "Seletor de Arquivos",
+        app_close: "Fechando aplicação...",
+        search_placeholder: "Pesquisar arquivos e pastas...",
+        internal_storage: "Armazenamento interno",
+        sd_card: "Cartão SD",
+        no_files: "Nenhum arquivo encontrado",
+        items_count: "{count} item",
+        items_count_plural: "{count} itens",
+        items_selected: "Itens selecionados:",
+        select_all: "{count} selecionado",
+        select_all_plural: "{count} selecionados",
+        copy_success: "{count} item copiado com sucesso!",
+        copy_success_plural: "{count} itens copiados com sucesso!",
+        copy_empty: "Nenhum item selecionado para copiar",
+        copy_error: "Erro ao copiar itens para a área de transferência"
+      },
+      "es-ES": {
+        app_title: "Selector de Archivos",
+        app_close: "Cerrando aplicación...",
+        search_placeholder: "Buscar archivos e carpetas...",
+        internal_storage: "Almacenamiento interno",
+        sd_card: "Tarjeta SD",
+        no_files: "No se encontraron archivos",
+        items_count: "{count} elemento",
+        items_count_plural: "{count} elementos",
+        items_selected: "Artículos seleccionados:",
+        select_all: "{count} seleccionado",
+        select_all_plural: "{count} seleccionados",
+        copy_success: "¡{count} elemento copiado con éxito!",
+        copy_success_plural: "¡{count} elementos copiados con éxito!",
+        copy_empty: "No hay ningún elemento seleccionado para copiar",
+        copy_error: "Error al copiar elementos al portapapeles"
+      },
+      "en-US": {
+        app_title: "File Picker",
+        app_close: "Closing application...",
+        search_placeholder: "Search files and folders...",
+        internal_storage: "Internal Storage",
+        sd_card: "SD Card",
+        no_files: "No files found",
+        items_count: "{count} item",
+        items_count_plural: "{count} items",
+        items_selected: "Selected items:",
+        select_all: "{count} selected",
+        select_all_plural: "{count} selected",
+        copy_success: "{count} item copied successfully!",
+        copy_success_plural: "{count} items copied successfully!",
+        copy_empty: "No item selected to copy",
+        copy_error: "Error copying items to clipboard"
+      }
+    };
+
+    return translations[locale] || {};
+  }
+
+  async function initialize() {
+    const systemLocale = detectSystemLocale();
+    state.currentLocale = await loadTranslations(systemLocale);
+    applyTranslationsToDOM();
+  }
+
+  function applyTranslationsToDOM() {
+    document.querySelectorAll("[data-i18n]").forEach(element => {
+      const key = element.getAttribute("data-i18n");
+      const text = translate(key);
+      if (text) {
+        if (element.tagName === "INPUT" && element.placeholder) {
+          element.placeholder = text;
+        } else {
+          element.textContent = text;
+        }
+      }
+    });
+  }
+
+  function translate(key, params = {}) {
+    const translations = state.translations[state.currentLocale];
+    let text = translations[key] || key;
+
+    Object.keys(params).forEach(param => {
+      text = text.replace(new RegExp(`{${param}}`, "g"), params[param]);
+    });
+
+    return text;
+  }
+
+  function translatePlural(key, count) {
+    const pluralKey = count === 1 ? key : `${key}_plural`;
+    return translate(pluralKey, { count });
+  }
+
+  return {
+    initialize,
+    translate,
+    translatePlural
+  };
+})();
+
 const AppState = (function () {
   const state = {
     file: {
@@ -529,7 +657,10 @@ const UIRenderer = (function () {
 
   function updateSubfolderCount(subfolder, itemCount) {
     DOMElements.updateElement(`[data-subfolder="${subfolder}"]`, element => {
-      element.textContent = `${itemCount} item${itemCount !== 1 ? "s" : ""}`;
+      element.textContent = I18nManager.translatePlural(
+        "items_count",
+        itemCount
+      );
     });
   }
 
@@ -537,7 +668,9 @@ const UIRenderer = (function () {
     const isInternalStorage = storagePath.includes("emulated/0");
 
     const deviceData = {
-      title: isInternalStorage ? "Internal Storage" : "SD Card",
+      title: isInternalStorage
+        ? I18nManager.translate("internal_storage")
+        : I18nManager.translate("sd_card"),
       icon: isInternalStorage ? "fa-mobile" : "fa-sd-card",
       className: isInternalStorage ? "internal-storage" : "external-storage"
     };
@@ -569,8 +702,8 @@ const UIRenderer = (function () {
       const displayName =
         index === 0
           ? directory === "/storage/emulated/0"
-            ? "Internal Storage"
-            : "SD Card"
+            ? I18nManager.translate("internal_storage")
+            : I18nManager.translate("sd_card")
           : directory;
 
       const separator = index === 0 ? "" : '<span class="separator">»</span>';
@@ -856,6 +989,13 @@ const FileListRenderer = (function () {
       );
     }
 
+    if (itemsToRender.length === 0) {
+      DOMElements.fileList.innerHTML = `<div class="no-files" data-i18n="no_files">${I18nManager.translate(
+        "no_files"
+      )}</div>`;
+      return;
+    }
+
     renderItems(itemsToRender);
 
     requestAnimationFrame(() => {
@@ -968,18 +1108,19 @@ const SelectionManager = (function () {
 
   function copySelectedToClipboard() {
     const selectedData = FileManager.getSelectedItems();
+    const count = selectedData.length;
 
-    if (navigator.clipboard && selectedData.length > 0) {
+    if (navigator.clipboard && count > 0) {
       navigator.clipboard
         .writeText(selectedData.join(","))
         .then(() => {
-          alert(`${selectedData.length} items copied successfully!`);
+          alert(I18nManager.translatePlural("copy_success", count));
         })
         .catch(err => {
-          alert("Error copying items to the clipboard");
+          alert(I18nManager.translate("copy_error"));
         });
     } else {
-      alert("No item selected copy.")
+      alert(I18nManager.translate("copy_empty"));
     }
   }
 
@@ -1086,7 +1227,8 @@ const App = (function (env) {
     }
   }
 
-  function initialize() {
+  async function initialize() {
+    await I18nManager.initialize();
     updateStoragePaths();
     EventManager.setupEventListeners();
     NavigationManager.goToFolder(AppState.file.storagePaths[0]);

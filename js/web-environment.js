@@ -1,5 +1,6 @@
 const webEnvironment = {
   name: "web",
+
   executeCommand(command, ...params) {
     switch (command) {
       case "get_sd_card":
@@ -13,10 +14,14 @@ const webEnvironment = {
     }
   },
   exitApplication(clearCache) {
-    alert("Closing application...");
+    alert(I18nManager.translate("app_close"));
     clearCache();
   },
   returnSelectedItems(selectedItems) {
-    alert(`Selected items:\n\n${selectedItems.join("\n")}`);
+    alert(
+      `${I18nManager.translate("items_selected")}\n\n${selectedItems.join(
+        "\n"
+      )}`
+    );
   }
 };
