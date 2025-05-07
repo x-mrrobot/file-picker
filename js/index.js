@@ -293,20 +293,15 @@ const Utils = {
   }
 };
 
-const CacheManager = (function () {
+const CacheManager = (() => {
   const config = {
     enabled: true,
     maxEntries: 20,
     expirationTime: 5 * 60 * 1000
   };
 
-  function getDirectoryKey(path) {
-    return path;
-  }
-
   function getCache() {
-    const cachedData = localStorage.getItem("@file-picker") || "{}";
-    return JSON.parse(cachedData);
+    return JSON.parse(localStorage.getItem("@file-picker") || "{}");
   }
 
   function saveCache(cacheData) {
@@ -315,71 +310,52 @@ const CacheManager = (function () {
 
   function isValid(path) {
     if (!config.enabled) return false;
-    
     const cache = getCache();
-    const dirKey = getDirectoryKey(path);
-    const entry = cache[dirKey];
-    if (!entry) return false;
-    return Date.now() - entry.timestamp < config.expirationTime;
+    const entry = cache[path];
+    return entry && Date.now() - entry.timestamp < config.expirationTime;
   }
 
   function get(path) {
-    if (!config.enabled) return null;
-    
-    if (!isValid(path)) return null;
-    const cache = getCache();
-    const dirKey = getDirectoryKey(path);
-    const entry = cache[dirKey];
-    if (!entry || !entry.fileData) return null;
-    return {
-      fileData: entry.fileData,
-      subfolderData: entry.subfolderData
-    };
+    if (!config.enabled || !isValid(path)) return null;
+    const entry = getCache()[path];
+    return entry
+      ? { fileData: entry.fileData, subfolderData: entry.subfolderData }
+      : null;
   }
 
-  function save(path, fileData, subfolderData) {
+  function save(path, fileData, subfolderData = {}) {
     if (!config.enabled) return;
-    
-    const cache = getCache();
-    const dirKey = getDirectoryKey(path);
 
-    cache[dirKey] = {
+    const cache = getCache();
+
+    cache[path] = {
       fileData,
-      subfolderData: subfolderData || {},
+      subfolderData,
       timestamp: Date.now()
     };
 
-    const entries = Object.entries(cache).sort(
-      (a, b) => b[1].timestamp - a[1].timestamp
-    );
+    const entries = Object.entries(cache)
+      .sort((a, b) => b[1].timestamp - a[1].timestamp)
+      .slice(0, config.maxEntries);
 
-    if (entries.length > config.maxEntries) {
-      const cacheToKeep = {};
-      entries.slice(0, config.maxEntries).forEach(([key, value]) => {
-        cacheToKeep[key] = value;
-      });
-      saveCache(cacheToKeep);
-    } else {
-      saveCache(cache);
-    }
+    saveCache(Object.fromEntries(entries));
   }
 
   function commitSubfolderItemCounts(path, subfolderData) {
     if (!config.enabled) return;
 
     const cache = getCache();
-    const dirKey = getDirectoryKey(path);
 
-    if (!cache[dirKey]) {
-      cache[dirKey] = {
+    if (!cache[path]) {
+      cache[path] = {
         fileData: null,
         subfolderData: {},
         timestamp: Date.now()
       };
     }
 
-    cache[dirKey].subfolderData = subfolderData;
-    cache[dirKey].timestamp = Date.now();
+    cache[path].subfolderData = subfolderData;
+    cache[path].timestamp = Date.now();
 
     saveCache(cache);
   }
@@ -388,13 +364,7 @@ const CacheManager = (function () {
     localStorage.removeItem("@file-picker");
   }
 
-  return {
-    get,
-    save,
-    commitSubfolderItemCounts,
-    clear,
-    isValid
-  };
+  return { get, save, commitSubfolderItemCounts, clear, isValid };
 })();
 
 const DOMElements = (function () {
@@ -430,7 +400,7 @@ const DOMElements = (function () {
   };
 })();
 
-const FileManager = (function (env) {
+const FileManager = (env => {
   function buildFullPath(itemName) {
     const currentPath = AppState.file.pathHistory.join("/");
     return currentPath ? `${currentPath}/${itemName}` : itemName;
@@ -455,7 +425,6 @@ const FileManager = (function (env) {
 
   function getFileList(directory) {
     const cachedData = CacheManager.get(directory);
-
     if (cachedData) {
       if (cachedData.subfolderData) {
         AppState.file.subfolderData = cachedData.subfolderData;
@@ -490,20 +459,39 @@ const FileManager = (function (env) {
   };
 })(currentEnvironment);
 
-const TaskProcessor = (function (env) {
-  function getSubfolderItemCount(directory, subfolder) {
-    return new Promise((resolve, reject) => {
+const SubfolderManager = (() => {
+  const config = { maxConcurrentProcessing: 15 };
+  const state = { queue: [], activeCount: 0, currentDirectory: null };
+
+  function getCurrentPath() {
+    return AppState.file.pathHistory.join("/");
+  }
+
+  function hasPathChanged() {
+    const currentPath = getCurrentPath();
+    if (state.currentDirectory !== currentPath) {
+      clearQueue();
+      state.currentDirectory = currentPath;
+      return true;
+    }
+    return false;
+  }
+
+  function clearQueue() {
+    state.queue = [];
+    state.activeCount = 0;
+    state.currentDirectory = getCurrentPath();
+  }
+
+  function processSubfolderCount(directory, subfolder) {
+    return new Promise(resolve => {
       const cachedData = CacheManager.get(directory);
-      if (
-        cachedData &&
-        cachedData.subfolderData &&
-        cachedData.subfolderData[subfolder] !== undefined
-      ) {
+      if (cachedData?.subfolderData?.[subfolder] !== undefined) {
         return resolve(cachedData.subfolderData[subfolder]);
       }
 
       setTimeout(() => {
-        const output = env.execute(
+        const output = currentEnvironment.execute(
           "get_subfolder_item_count",
           `"${directory}/${subfolder}"`
         );
@@ -514,54 +502,41 @@ const TaskProcessor = (function (env) {
     });
   }
 
-  function processSubfolderCountTask(task, callback) {
-    getSubfolderItemCount(task.directory, task.subfolder)
-      .then(itemCount => {
-        UIRenderer.updateSubfolderCount(task.subfolder, itemCount);
-      })
-      .catch(() => {})
-      .finally(() => {
-        const totalActiveSubfolders = TaskQueue.getActiveCount();
+  function processTask(task) {
+    if (hasPathChanged()) return;
 
-        if (totalActiveSubfolders <= 1) {
+    state.activeCount++;
+
+    processSubfolderCount(task.directory, task.subfolder)
+      .then(itemCount => {
+        DOMElements.updateElement(
+          `[data-subfolder="${task.subfolder}"]`,
+          element => {
+            element.textContent = I18nManager.translatePlural(
+              "items_count",
+              itemCount
+            );
+          }
+        );
+      })
+      .finally(() => {
+        state.activeCount--;
+
+        if (state.activeCount <= 1) {
           CacheManager.commitSubfolderItemCounts(
             task.directory,
             AppState.file.subfolderData
           );
         }
 
-        callback();
+        if (!hasPathChanged()) {
+          processNext();
+        }
       });
   }
 
-  return {
-    getSubfolderItemCount,
-    processSubfolderCountTask
-  };
-})(currentEnvironment);
-
-const TaskQueue = (function () {
-  const config = {
-    maxConcurrentProcessing: 15
-  };
-
-  const state = {
-    queue: [],
-    activeCount: 0,
-    currentDirectory: null
-  };
-
-  function checkAndUpdatePath() {
-    if (state.currentDirectory !== NavigationManager.getCurrentPath()) {
-      clearQueue();
-      state.currentDirectory = NavigationManager.getCurrentPath();
-      return true;
-    }
-    return false;
-  }
-
   function processNext() {
-    if (checkAndUpdatePath()) return;
+    if (hasPathChanged()) return;
 
     if (
       state.queue.length > 0 &&
@@ -572,40 +547,17 @@ const TaskQueue = (function () {
     }
   }
 
-  function processTask(task) {
-    if (checkAndUpdatePath()) return;
-
-    state.activeCount++;
-
-    const processingDone = () => {
-      state.activeCount--;
-      if (!checkAndUpdatePath()) {
-        processNext();
-      }
-    };
-
-    TaskProcessor.processSubfolderCountTask(task, processingDone);
-  }
-
   function enqueue(task) {
-    if (checkAndUpdatePath()) return;
+    if (hasPathChanged()) return;
 
     state.queue.push(task);
     processNext();
   }
 
-  function clearQueue() {
-    state.queue = [];
-    state.activeCount = 0;
-    state.currentDirectory = NavigationManager.getCurrentPath();
-  }
-
   return {
     enqueue,
     clearQueue,
-    getActiveCount: function () {
-      return state.activeCount;
-    }
+    getActiveCount: () => state.activeCount
   };
 })();
 
@@ -798,6 +750,17 @@ const NavigationManager = (function (env) {
     const fileSystemData = FileManager.getFileList(newPath);
     AppState.setFileSystemData(fileSystemData);
   }
+  function navigateToPath(newPath) {
+    UIRenderer.showLoadingIndicator();
+
+    SubfolderManager.clearQueue();
+    AppState.file.subfolderData = {};
+    AppState.clearSelectedItems();
+    AppState.resetPage();
+
+    const fileSystemData = FileManager.getFileList(newPath);
+    AppState.setFileSystemData(fileSystemData);
+  }
 
   function goToFolder(folderName) {
     const fullDirPath = FileManager.buildFullPath(folderName);
@@ -937,12 +900,10 @@ const FileListRenderer = (function () {
   }
 
   function processSubfolder(subfolder) {
-    const task = {
-      type: "subfolder_item_count",
+    SubfolderManager.enqueue({
       directory: NavigationManager.getCurrentPath(),
       subfolder
-    };
-    TaskQueue.enqueue(task);
+    });
   }
 
   function renderFileList() {
