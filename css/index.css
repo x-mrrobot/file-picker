@@ -90,6 +90,31 @@ input {
   }
 }
 
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -3rem;
+  padding: 0.3rem;
+  border-radius: 5rem;
+  background: var(--color-bg-secondary);
+  transition: transform 0.3s ease;
+  z-index: 10;
+}
+
+.pull-loading-spinner {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 0.3rem solid transparent;
+  border-radius: 50%;
+  border-top-color: var(--color-accent);
+  animation: pull-spinner 0.8s linear infinite;
+}
+
+@keyframes pull-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* header */
 
 .header {
@@ -254,6 +279,10 @@ input {
 
 .file-list {
   flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding-bottom: 7rem;
   overflow-y: auto;
 }
