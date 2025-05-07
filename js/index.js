@@ -364,7 +364,13 @@ const CacheManager = (() => {
     localStorage.removeItem("@file-picker");
   }
 
-  return { get, save, commitSubfolderItemCounts, clear, isValid };
+  return {
+    get,
+    save,
+    commitSubfolderItemCounts,
+    clear,
+    isValid
+  };
 })();
 
 const DOMElements = (function () {
@@ -1066,6 +1072,7 @@ const SelectionManager = (function () {
 const EventManager = (function (env) {
   function setupEventListeners() {
     const dom = DOMElements;
+    let scrollTimer = null;
 
     dom.currentPath.addEventListener("click", () => {
       const pathItem = event.target.closest("[data-index]");
@@ -1112,6 +1119,16 @@ const EventManager = (function (env) {
       }
     });
 
+    dom.fileList.addEventListener("scroll", function () {
+      dom.fileList.classList.add("scrolling");
+
+      clearTimeout(scrollTimer);
+
+      scrollTimer = setTimeout(function () {
+        dom.fileList.classList.remove("scrolling");
+      }, 1000);
+    });
+
     dom.selectionCounter.addEventListener("click", () => {
       SelectionManager.toggleAllItems();
     });
@@ -1149,10 +1166,10 @@ const EventManager = (function (env) {
 
 const App = (function (env) {
   function updateStoragePaths() {
-    AppState.addStoragePath("/storage/emulated/0");
+    const internalStoragePath = "/storage/emulated/0";
+    AppState.addStoragePath(internalStoragePath);
 
     const sdCardPath = FileManager.getSdCard();
-
     if (sdCardPath) {
       AppState.addStoragePath(sdCardPath);
     }
@@ -1162,6 +1179,7 @@ const App = (function (env) {
     I18nManager.initialize();
     updateStoragePaths();
     EventManager.setupEventListeners();
+
     NavigationManager.goToFolder(AppState.file.storagePaths[0]);
   }
 

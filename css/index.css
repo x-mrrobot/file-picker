@@ -252,13 +252,14 @@ input {
 
 .file-list::-webkit-scrollbar {
   width: 0.3rem;
+  opacity: 0;
 }
 
-.file-list::-webkit-scrollbar-track {
-  /* background: var(--color-bg-secondary); */
+.file-list.scrolling::-webkit-scrollbar {
+  opacity: 1;
 }
 
-.file-list::-webkit-scrollbar-thumb {
+.file-list.scrolling::-webkit-scrollbar-thumb {
   background-color: rgba(var(--color-accent-rgb), 0.4);
   border-radius: 5rem;
 }
