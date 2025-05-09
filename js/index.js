@@ -70,7 +70,7 @@ const I18nManager = (function (env) {
   };
 
   function detectSystemLocale() {
-    return env.system_locale || navigator.language || state.fallbackLocale;
+    return env.languageCode || navigator.language || state.fallbackLocale;
   }
 
   function loadTranslations(locale) {
@@ -1301,6 +1301,17 @@ const PullToRefreshManager = (function () {
 })();
 
 const App = (function (env) {
+  function applyTheme() {
+    const body = document.querySelector("body");
+
+    const darkThemeEnabled = env.darkThemeEnabled;
+    if (darkThemeEnabled) {
+      body.classList.remove("light-theme");
+    } else {
+      body.classList.add("light-theme");
+    }
+  }
+
   function updateStoragePaths() {
     const internalStoragePath = "/storage/emulated/0";
     AppState.addStoragePath(internalStoragePath);
@@ -1312,6 +1323,7 @@ const App = (function (env) {
   }
 
   function initialize() {
+    applyTheme();
     I18nManager.initialize();
     updateStoragePaths();
     EventManager.setupEventListeners();

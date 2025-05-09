@@ -1,31 +1,37 @@
 const webEnvironment = {
   name: "web",
-  system_locale: null,
+  languageCode: "en-US",
+  darkThemeEnabled: true,
 
   execute(cmd, ...args) {
     const commands = {
-      get_sd_card: () => "/storage/E4F1-7FD9",
-      list_directory: () => fileSystemData,
-      get_subfolder_item_count: dir => {
-        const path = (dir || "").replaceAll('"', "");
+      get_sd_card: function () {
+        return "/storage/E4F1-7FD9";
+      },
+      list_directory: function () {
+        return fileSystemData;
+      },
+      get_subfolder_item_count: function (dir = "") {
+        const path = dir.replaceAll('"', "");
         const base = path.replace(/\/.+\//g, "");
         return subfolderData[base] || 0;
       }
     };
-    const fn = commands[cmd];
 
-    if (!fn) throw new Error(`Invalid command: ${cmd}`);
+    const fn = commands[cmd];
+    if (!fn) {
+      throw new Error(`Invalid command: ${cmd}`);
+    }
+
     return fn(...args);
   },
-
   terminate() {
     alert(I18nManager.translate("app_close"));
     CacheManager.clear();
   },
-
   submitSelection(items) {
-    const msg = I18nManager.translate("items_selected");
+    const selectedMessage = I18nManager.translate("items_selected");
     const formattedItems = items.join("\n");
-    alert(`${msg}\n\n${formattedItems}`);
+    alert(`${selectedMessage}\n\n${formattedItems}`);
   }
 };
