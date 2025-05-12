@@ -1,0 +1,41 @@
+/* Footer */
+.footer {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-lg);
+  z-index: 10;
+}
+
+.floating-btn,
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.2rem;
+  height: 5.2rem;
+  font-size: var(--fs-md);
+  font-weight: bold;
+  border-radius: var(--radius-full);
+  color: var(--icon-default);
+  background: var(--icon-primary);
+  backdrop-filter: blur(0.2rem);
+  box-shadow: 0 0.2rem 0.3rem rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.footer-actions {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.selection-active .footer-actions {
+  display: flex;
+}
+
+.floating-btn:active,
+.action-btn:active {
+  transform: scale(0.9);
+}

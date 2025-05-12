@@ -1,0 +1,118 @@
+/* File-list */
+.file-list {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 7rem;
+  overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(var(--primary-rgb), 0.4) transparent; /* Firefox */
+}
+
+.file-list::-webkit-scrollbar {
+  width: 0.3rem;
+  opacity: 0;
+}
+
+.file-list.scrolling::-webkit-scrollbar {
+  opacity: 1;
+}
+
+.file-list.scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--primary-rgb), 0.4);
+  border-radius: 5rem;
+}
+
+.item-entry {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  border-bottom: 0.1rem solid var(--border);
+  transition: background 0.2s ease;
+}
+
+.item-entry:last-child {
+  border-bottom: none;
+}
+
+.item-entry:active {
+  background: var(--bg-hover);
+}
+
+.item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.8rem;
+  height: 4.8rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.folder .item-icon {
+  font-size: 2.4rem;
+  color: var(--icon-primary);
+  padding-left: 0.2rem;
+  box-shadow: var(--shadow-default);
+}
+
+.file .item-icon {
+  padding: var(--space-xs);
+  box-shadow: 0 1px 0px 0.1rem rgba(var(--primary-rgb), 0.6);
+}
+
+.file-extension {
+  text-align: center;
+  width: 100%;
+  color: var(--icon-primary);
+  padding: 0 0.2rem;
+  font-weight: bold;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  overflow: hidden;
+}
+
+.item-name {
+  font-size: var(--fs-md);
+  width: 100%;
+  font-weight: bold;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.item-metadata {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.item-indicator {
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+}
+
+.no-files {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: var(--fs-lg);
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-xl);
+}

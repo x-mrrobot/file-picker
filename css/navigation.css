@@ -1,0 +1,71 @@
+/* Header-nav */
+.header-nav {
+  display: flex;
+  align-items: center;
+  padding: var(--space-lg);
+  overflow: hidden;
+}
+
+.back-btn,
+.search-btn,
+.close-search-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: var(--space-xs);
+  border-radius: var(--radius-md);
+  background: transparent;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.back-btn:active,
+.search-btn:active,
+.close-search-btn:active {
+  background: var(--bg-secondary);
+}
+
+/* Path-nav */
+.path-nav {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  color: var(--text-muted);
+  margin: 0 var(--space-md);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.path-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.path-nav.hidden {
+  width: 0;
+  overflow: hidden;
+  margin: 0;
+  flex: 0;
+}
+
+.path-item {
+  font-size: var(--fs-xs);
+  font-weight: bold;
+  padding: 0.5rem 0;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.path-item:last-child,
+.path-item:active {
+  color: var(--text-primary);
+}
+
+.separator {
+  font-size: var(--fs-md);
+}

@@ -1,0 +1,54 @@
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 0.1rem solid var(--border);
+}
+
+/* Header-storage */
+.header-storage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: var(--space-sm);
+  margin: var(--space-lg);
+  margin-bottom: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: 0 0 1px -1px rgba(0, 0, 0, 0.1);
+}
+
+.storage-device {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  transition: box-shadow 0.3s ease;
+}
+
+.storage-device:active,
+.storage-device.active {
+  background: var(--bg-primary);
+}
+
+.device-icon {
+  font-size: var(--fs-lg);
+  color: var(--text-muted);
+}
+
+.device-name {
+  text-align: center;
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+}
+
+.storage-device.active .device-icon {
+  color: var(--icon-primary);
+}
+
+.storage-device.active .device-name {
+  color: var(--text-primary);
+}

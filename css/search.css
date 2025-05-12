@@ -1,0 +1,28 @@
+/* Search */
+.search-container {
+  display: none;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+  margin: 0 var(--space-lg);
+  margin-right: 0;
+}
+
+.search-container.active {
+  display: flex;
+}
+
+.search-input {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: var(--fs-md);
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-btn.hidden {
+  display: none;
+}
