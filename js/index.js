@@ -341,7 +341,7 @@ const CacheManager = (() => {
     saveCache(Object.fromEntries(entries));
   }
 
-  function commitSubfolderItemCounts(path, subfolderData) {
+  function updateCacheEntry(path, subfolderData) {
     if (!config.enabled) return;
 
     const cache = getCache();
@@ -375,7 +375,7 @@ const CacheManager = (() => {
   return {
     get,
     save,
-    commitSubfolderItemCounts,
+    updateCacheEntry,
     clear,
     isValid
   };
@@ -433,10 +433,6 @@ const FileManager = (env => {
     return JSON.parse(`[${rawData}]`);
   }
 
-  function getSelectedItems() {
-    return Array.from(AppState.file.selectedItems);
-  }
-
   function getFileList(directory) {
     const cachedData = CacheManager.get(directory);
     if (cachedData) {
@@ -452,60 +448,18 @@ const FileManager = (env => {
     return parsedData;
   }
 
-  function filterItems(query) {
-    if (!query || query.trim() === "") {
-      return AppState.file.fileSystemData;
-    }
-
-    const normalizedQuery = query.toLowerCase().trim();
-    return AppState.file.fileSystemData.filter(item =>
-      item.name.toLowerCase().includes(normalizedQuery)
-    );
-  }
-
-  return {
-    buildFullPath,
-    getSdCard,
-    parseDirectoryOutput,
-    getSelectedItems,
-    getFileList,
-    filterItems
-  };
-})(currentEnvironment);
-
-const SubfolderManager = (() => {
-  const config = { maxConcurrentProcessing: 15 };
-  const state = { queue: [], activeCount: 0, currentDirectory: null };
-
-  function getCurrentPath() {
-    return AppState.file.pathHistory.join("/");
-  }
-
-  function hasPathChanged() {
-    const currentPath = getCurrentPath();
-    if (state.currentDirectory !== currentPath) {
-      clearQueue();
-      state.currentDirectory = currentPath;
-      return true;
-    }
-    return false;
-  }
-
-  function clearQueue() {
-    state.queue = [];
-    state.activeCount = 0;
-    state.currentDirectory = getCurrentPath();
-  }
-
   function processSubfolderCount(directory, subfolder) {
-    return new Promise(resolve => {
-      const cachedData = CacheManager.get(directory);
-      if (cachedData?.subfolderData?.[subfolder] !== undefined) {
-        return resolve(cachedData.subfolderData[subfolder]);
-      }
+    const cachedCount = AppState.file.subfolderData[subfolder];
+    if (cachedCount !== undefined) {
+      return Promise.resolve(cachedCount);
+    }
 
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const output = currentEnvironment.execute(
+        const finalCurrentPath = NavigationManager.getCurrentPath();
+        if (directory !== finalCurrentPath) return reject(subfolder);
+
+        const output = env.execute(
           "get_subfolder_item_count",
           `"${directory}/${subfolder}"`
         );
@@ -516,64 +470,14 @@ const SubfolderManager = (() => {
     });
   }
 
-  function processTask(task) {
-    if (hasPathChanged()) return;
-
-    state.activeCount++;
-
-    processSubfolderCount(task.directory, task.subfolder)
-      .then(itemCount => {
-        DOMElements.updateElement(
-          `[data-subfolder="${task.subfolder}"]`,
-          element => {
-            element.textContent = I18nManager.translatePlural(
-              "items_count",
-              itemCount
-            );
-          }
-        );
-      })
-      .finally(() => {
-        state.activeCount--;
-
-        if (state.activeCount <= 1) {
-          CacheManager.commitSubfolderItemCounts(
-            task.directory,
-            AppState.file.subfolderData
-          );
-        }
-
-        if (!hasPathChanged()) {
-          processNext();
-        }
-      });
-  }
-
-  function processNext() {
-    if (hasPathChanged()) return;
-
-    if (
-      state.queue.length > 0 &&
-      state.activeCount < config.maxConcurrentProcessing
-    ) {
-      const task = state.queue.shift();
-      processTask(task);
-    }
-  }
-
-  function enqueue(task) {
-    if (hasPathChanged()) return;
-
-    state.queue.push(task);
-    processNext();
-  }
-
   return {
-    enqueue,
-    clearQueue,
-    getActiveCount: () => state.activeCount
+    buildFullPath,
+    getSdCard,
+    parseDirectoryOutput,
+    getFileList,
+    processSubfolderCount
   };
-})();
+})(currentEnvironment);
 
 const UIRenderer = (function () {
   function updateActiveStorageDevice() {
@@ -674,7 +578,7 @@ const UIRenderer = (function () {
 
   function updateSelectionCounter() {
     DOMElements.selectionCounter.textContent =
-      FileManager.getSelectedItems().length;
+      SelectionManager.getSelectedItems().length;
   }
 
   function updateSelectionToggleIcon() {
@@ -756,18 +660,6 @@ const NavigationManager = (function (env) {
   function navigateToPath(newPath) {
     UIRenderer.showLoadingIndicator();
 
-    TaskQueue.clearQueue();
-    AppState.file.subfolderData = {};
-    AppState.clearSelectedItems();
-    AppState.resetPage();
-
-    const fileSystemData = FileManager.getFileList(newPath);
-    AppState.setFileSystemData(fileSystemData);
-  }
-  function navigateToPath(newPath) {
-    UIRenderer.showLoadingIndicator();
-
-    SubfolderManager.clearQueue();
     AppState.file.subfolderData = {};
     AppState.clearSelectedItems();
     AppState.resetPage();
@@ -795,17 +687,23 @@ const NavigationManager = (function (env) {
     return false;
   }
 
-  function goBack() {
+  function handleSelectionMode() {
     if (AppState.ui.selectionMode) {
       AppState.toggleSelectionMode(false);
-      return;
+      return true;
     }
+    return false;
+  }
 
+  function handleActiveSearch() {
     if (AppState.ui.searchActive) {
       SearchManager.closeSearch();
-      return;
+      return true;
     }
+    return false;
+  }
 
+  function navigateToPreviousPath() {
     if (AppState.file.pathHistory.length > 1) {
       const newHistory = AppState.file.pathHistory.slice(0, -1);
       AppState.setPathHistory(newHistory);
@@ -813,6 +711,22 @@ const NavigationManager = (function (env) {
       navigateToPath(currentPath);
       return true;
     }
+    return false;
+  }
+
+  function goBack() {
+    if (handleSelectionMode()) {
+      return;
+    }
+
+    if (handleActiveSearch()) {
+      return;
+    }
+
+    if (navigateToPreviousPath()) {
+      return;
+    }
+
     env.terminate(CacheManager.clear);
   }
 
@@ -836,13 +750,27 @@ const SearchManager = (function () {
   }
 
   function filterItems(query) {
-    AppState.setFilteredItems(FileManager.filterItems(query));
+    if (!query || query.trim() === "") {
+      return AppState.file.fileSystemData;
+    }
+
+    const normalizedQuery = query.toLowerCase().trim();
+
+    return AppState.file.fileSystemData.filter(item =>
+      item.name.toLowerCase().includes(normalizedQuery)
+    );
   }
 
-  return { openSearch, closeSearch, filterItems };
+  return {
+    openSearch,
+    closeSearch,
+    filterItems
+  };
 })();
 
 const FileListRenderer = (function () {
+  let processingSubfolderCount = 0;
+
   function generateFileItemHTML(item) {
     const isDirectory = item.type === "d";
 
@@ -906,38 +834,59 @@ const FileListRenderer = (function () {
     const htmlContent = generateFileItemsHTML(items);
     appendFileItemsToDOM(htmlContent);
 
-    items.forEach(item => {
-      if (item.type === "d") {
-        processSubfolder(item.name);
-      }
-    });
+    const folderItems = items.filter(item => item.type === "d");
+
+    if (folderItems.length) {
+      const lastSubfolder = folderItems[folderItems.length - 1].name;
+
+      folderItems.forEach(item => processSubfolder(item.name, lastSubfolder));
+    }
   }
 
-  function processSubfolder(subfolder) {
-    SubfolderManager.enqueue({
-      directory: NavigationManager.getCurrentPath(),
-      subfolder
-    });
+  function processSubfolder(subfolder, lastSubfolder) {
+    const currentPath = NavigationManager.getCurrentPath();
+    processingSubfolderCount++;
+
+    FileManager.processSubfolderCount(currentPath, subfolder)
+      .then(itemCount => {
+        UIRenderer.updateSubfolderCount(subfolder, itemCount);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (processingSubfolderCount == 1) {
+          CacheManager.updateCacheEntry(
+            currentPath,
+            AppState.file.subfolderData
+          );
+        }
+        processingSubfolderCount--;
+      });
+  }
+
+  function renderEmptyState() {
+    DOMElements.fileList.innerHTML = `<div class="no-files" data-i18n="no_files">${I18nManager.translate(
+      "no_files"
+    )}</div>`;
+  }
+
+  function getItemsToRender() {
+    if (AppState.ui.searchActive) {
+      return AppState.file.filteredItems;
+    } else {
+      return AppState.file.fileSystemData.slice(
+        0,
+        AppState.ui.currentPage * AppState.ui.pageSize
+      );
+    }
   }
 
   function renderFileList() {
     DOMElements.fileList.innerHTML = "";
 
-    let itemsToRender = [];
-
-    if (AppState.ui.searchActive) {
-      itemsToRender = AppState.file.filteredItems;
-    } else {
-      itemsToRender = AppState.file.fileSystemData.slice(
-        0,
-        AppState.ui.currentPage * AppState.ui.pageSize
-      );
-    }
+    const itemsToRender = getItemsToRender();
 
     if (itemsToRender.length === 0) {
-      DOMElements.fileList.innerHTML = `<div class="no-files" data-i18n="no_files">${I18nManager.translate(
-        "no_files"
-      )}</div>`;
+      renderEmptyState();
       return;
     }
 
@@ -1031,7 +980,7 @@ const SelectionManager = (function () {
       ? AppState.file.filteredItems
       : AppState.file.fileSystemData;
 
-    const selectedCount = FileManager.getSelectedItems().length;
+    const selectedCount = SelectionManager.getSelectedItems().length;
     const shouldSelectItems = selectedCount !== itemsToProcess.length;
 
     itemsToProcess.forEach(fileItem => {
@@ -1051,8 +1000,12 @@ const SelectionManager = (function () {
     AppState.emit("SELECTION_CHANGE");
   }
 
+  function getSelectedItems() {
+    return Array.from(AppState.file.selectedItems);
+  }
+
   function copySelectedToClipboard() {
-    const selectedData = FileManager.getSelectedItems();
+    const selectedData = getSelectedItems();
     const count = selectedData.length;
 
     if (navigator.clipboard && count > 0) {
@@ -1073,6 +1026,7 @@ const SelectionManager = (function () {
     toggleMode,
     toggleItem,
     toggleAllItems,
+    getSelectedItems,
     copySelectedToClipboard
   };
 })();
@@ -1142,7 +1096,7 @@ const EventManager = (function (env) {
     });
 
     dom.selectButton.addEventListener("click", () => {
-      const selectedItems = FileManager.getSelectedItems();
+      const selectedItems = SelectionManager.getSelectedItems();
       env.submitSelection(selectedItems);
     });
 
@@ -1163,7 +1117,8 @@ const EventManager = (function (env) {
     });
 
     dom.searchInput.addEventListener("input", event => {
-      SearchManager.filterItems(event.target.value);
+      const filteredItems = SearchManager.filterItems(event.target.value);
+      AppState.setFilteredItems(filteredItems);
     });
   }
 
