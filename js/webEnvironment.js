@@ -9,12 +9,12 @@ const webEnvironment = {
         return "/storage/E4F1-7FD9";
       },
       list_directory: function () {
-        return fileSystemData;
+        return directoryStructure;
       },
       get_subfolder_item_count: function (dir = "") {
         const path = dir.replaceAll('"', "");
         const base = path.replace(/\/.+\//g, "");
-        return subfolderData[base] || 0;
+        return folderItemCount[base] || 0;
       }
     };
 

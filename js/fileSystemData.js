@@ -1,4 +1,4 @@
-const fileSystemData = `
+const directoryStructure = `
 d 3488 Acode
 d 3488 Android
 d 3488 DCIM
@@ -25,7 +25,7 @@ f 0 tasker:termux.apk
 f 2241 transcription.py
 f 5064234 video#teste.mp4`;
 
-const subfolderData = {
+const folderItemCount = {
   Acode: 2,
   Android: 4,
   DCIM: 13,
