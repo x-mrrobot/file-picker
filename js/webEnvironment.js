@@ -25,10 +25,16 @@ const webEnvironment = {
 
     return fn(...args);
   },
+
   terminate() {
     alert(I18nManager.translate("app_close"));
     CacheManager.clear();
   },
+
+  notify(message) {
+    alert(message);
+  },
+
   submitSelection(items) {
     const selectedMessage = I18nManager.translate("items_selected");
     const formattedItems = items.join("\n");

@@ -1,4 +1,4 @@
-const SelectionManager = (function () {
+const SelectionManager = (function (env) {
   function toggleMode() {
     AppState.toggleSelectionMode();
   }
@@ -56,13 +56,13 @@ const SelectionManager = (function () {
       navigator.clipboard
         .writeText(selectedData.join(","))
         .then(() => {
-          alert(I18nManager.translatePlural("copy_success", count));
+          env.notify(I18nManager.translatePlural("copy_success", count));
         })
         .catch(err => {
-          alert(I18nManager.translate("copy_error"));
+          env.notify(I18nManager.translate("copy_error"));
         });
     } else {
-      alert(I18nManager.translate("copy_empty"));
+      env.notify(I18nManager.translate("copy_empty"));
     }
   }
 
@@ -73,4 +73,4 @@ const SelectionManager = (function () {
     getSelectedItems,
     copySelectedToClipboard
   };
-})();
+})(currentEnvironment);
