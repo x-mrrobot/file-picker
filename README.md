@@ -1,6 +1,6 @@
 # FILE PICKER
 
-Um seletor de arquivos e pastas leve, responsivo e sem dependências, feito com HTML5, CSS3 e JavaScript puro. Projetado para uso independente ou integrado com ambientes como o Tasker no Android, ele permite navegação hierárquica, seleção múltipla, busca e cache de diretórios via localStorage.
+Um seletor de arquivos e pastas leve, sem dependências, feito com HTML5, CSS3 e JavaScript puro. Projetado para uso independente ou integrado com ambientes como o Tasker no Android, ele permite navegação hierárquica, seleção múltipla, busca e cache de diretórios via localStorage.
 
 ---
 
@@ -26,22 +26,22 @@ Um seletor de arquivos e pastas leve, responsivo e sem dependências, feito com 
 
 ## Funcionalidades
 
-- **Navegação Hierárquica** com botão "voltar" e breadcrumbs interativos.
-- **Seleção múltipla** de arquivos e pastas com contador e cópia dos caminhos.
-- **Busca** dentro do diretório atual.
-- **Listagem com Metadados** (tamanho de arquivos, número de itens em pastas).
-- **Rendimento otimizado** com scroll infinito e cache via localStorage.
-- **Internacionalização (i18n)**: Português (padrão), Inglês e Espanhol.
-- **Compatível com Tasker (Android)** via script shell `file-picker.sh`.
+- **Navegação hierárquica** com trilhas e botão de voltar
+- **Listagem com Metadados**: tamanho e contagem de itens por pasta
+- **Seleção múltipla** de arquivos e pastas e cópia dos caminhos
+- **Busca local** por arquivos e pastas no diretório atual
+- **Renderização otimizada** com scroll infinito
+- **Internacionalização (i18n)** baseada no ambiente (pt-BR, en-US, es-ES)
+- **Modo claro/escuro** baseado no ambiente
+- **Cache de diretórios** para carregamento rápido
+- **Compatível com Tasker (Android)** via script shell `file-picker.sh`
 
 ---
 
 ## Tecnologias
 
 - **Frontend**: HTML5 + CSS3 + JavaScript
-- **Estilização**: CSS puro com variáveis CSS e responsividade via media queries.
-- **Icones**: [Font Awesome](https://fontawesome.com)
-- **Backend (opcional)**: Script Bash `file-picker.sh` para integração com Tasker ou outro ambiente hospedeiro.
+- **Backend (opcional)**: Script shell SH `file-picker.sh` para integração com Tasker ou outro ambiente hospedeiro.
 
 ---
 
@@ -69,16 +69,21 @@ A navegação usará dados mockados via `data.js`.
 
 Para usar o seletor de arquivos diretamente no Tasker:
 
-1. **Importe o projeto** via [TaskerNet](https://taskernet.com/shares/?user=AS35m8k%2FEQCE%2BJiPvkN1cJcjBE7Yh%2B%2Fa8zZeifxINYS7E94XnS26HrYYgsweBVnbf2VB9WJdrS5k&id=Project%3AFILE+PICKER).
+1. Instale o Tasker na [Play Store](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm)
+2. **Importe o projeto** na [TaskerNet](https://taskernet.com/shares/?user=AS35m8k%2FEQCE%2BJiPvkN1cJcjBE7Yh%2B%2Fa8zZeifxINYS7E94XnS26HrYYgsweBVnbf2VB9WJdrS5k&id=Project%3AFILE+PICKER)
 3. **Mostre a cena** executando a tarefa **FP - FILE PICKER**
-4. **Receba o resultado da seleção** na aba toque no link do webview.
+4. **Receba o resultado da seleção** na aba toque no link do webview
 
 ### Uso Integrado em outros ambientes
 
 1. O ambiente hospedeiro deve:
    - Executar comandos via `file-picker.sh`
+   - Expor propriedades:
+     - `languageCode: "en-US"`
+     - `darkThemeEnabled: true`
    - Expor métodos:
      - `execute(command, ...args)`
+     - `notify(message)`
      - `terminate()`
      - `submitSelection(items)`
 2. Comandos esperados no script:
@@ -92,14 +97,37 @@ Para usar o seletor de arquivos diretamente no Tasker:
 
 ```
 .
-├── index.html             # Entrada principal
+├── index.html
 ├── css/
-│   └── index.css          # Estilo completo
+│   ├── variables.css
+│   ├── reset.css
+│   ├── loading.css
+│   ├── header.css
+│   ├── navigation.css
+│   ├── search.css
+│   ├── file-list.css
+│   ├── checkbox.css
+│   └── footer.css
 ├── js/
-│   ├── index.js           # Lógica principal da aplicação
-│   ├── data.js            # Dados mockados para testes
-│   └── web-environment.js # Simulação do ambiente hospedeiro
-└── file-picker.sh         # Script shell para integração real
+│   ├── fileSystemData.js
+│   ├── webEnvironment.js
+│   ├── Utils.js
+│   ├── EnvironmentManager.js
+│   ├── I18nManager.js
+│   ├── AppState.js
+│   ├── CacheManager.js
+│   ├── DOMElements.js
+│   ├── FileManager.js
+│   ├── NavigationManager.js
+│   ├── SearchManager.js
+│   ├── SelectionManager.js
+│   ├── PaginationManager.js
+│   ├── FileListRenderer.js
+│   ├── PullToRefreshManager.js
+│   ├── UIRenderer.js
+│   ├── EventManager.js
+│   └── App.js
+└── file-picker.sh
 ```
 
 ---
@@ -108,8 +136,8 @@ Para usar o seletor de arquivos diretamente no Tasker:
 
 Contribuições são bem-vindas! Sinta-se à vontade para:
 
-- Abrir *issues* com sugestões ou problemas.
-- Enviar *pull requests* com melhorias, correções ou novas funcionalidades.
+- Abrir _issues_ com sugestões ou problemas.
+- Enviar _pull requests_ com melhorias, correções ou novas funcionalidades.
 
 ---
 
