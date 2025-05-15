@@ -7,8 +7,6 @@
   align-items: center;
   padding-bottom: 7rem;
   overflow-y: auto;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgba(var(--primary-rgb), 0.4) transparent; /* Firefox */
 }
 
 .file-list::-webkit-scrollbar {
@@ -54,15 +52,20 @@
 }
 
 .folder .item-icon {
-  font-size: 2.4rem;
-  color: var(--icon-primary);
   padding-left: 0.2rem;
   box-shadow: var(--shadow-default);
 }
 
+.folder-icon {
+  color: var(--icon-primary);
+  width: 3rem;
+  height: 3rem;
+}
+
 .file .item-icon {
   padding: var(--space-xs);
-  box-shadow: 0 1px 0px 0.1rem rgba(var(--primary-rgb), 0.6);
+  box-shadow: 0 -1px 1px 0 rgba(var(--primary-rgb), 0.6),
+  0 1px 1px 0.1rem rgba(var(--primary-rgb), 0.6);
 }
 
 .file-extension {
@@ -101,8 +104,8 @@
   color: var(--text-secondary);
 }
 
-.item-indicator {
-  font-size: var(--fs-md);
+.indicator-icon {
+  height: 1.2rem;
   color: var(--text-muted);
 }
 

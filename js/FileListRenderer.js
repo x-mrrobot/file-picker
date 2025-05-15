@@ -16,7 +16,9 @@ const FileListRenderer = (function () {
 
     const itemIndicator = isDirectory
       ? `<div class="item-indicator">
-        <i class="fas fa-chevron-right"></i>
+        <svg class="indicator-icon" viewBox="0 0 320 512" fill="currentColor">
+          <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/>
+        </svg>
       </div>`
       : "";
 
@@ -33,7 +35,9 @@ const FileListRenderer = (function () {
       <div class="item-icon">
         ${
           isDirectory
-            ? `<i class="fas fa-folder-open"></i>`
+            ? `<svg class="folder-icon" viewBox="0 0 576 512" fill="currentColor">
+                <path d="M572.694 292.093L500.27 416.248A63.997 63.997 0 0 1 444.989 448H45.025c-18.523 0-30.064-20.093-20.731-36.093l72.424-124.155A64 64 0 0 1 152 256h399.964c18.523 0 30.064 20.093 20.73 36.093zM152 224h328v-48c0-26.51-21.49-48-48-48H272l-64-64H48C21.49 64 0 85.49 0 112v278.046l69.077-118.418C86.214 242.25 117.989 224 152 224z"/>
+              </svg>`
             : `<div class="file-extension" style="font-size: ${fontSize}">${extension}</div>`
         }
       </div>

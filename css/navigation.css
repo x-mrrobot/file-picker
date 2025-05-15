@@ -12,15 +12,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--text-muted);
-  font-size: var(--fs-md);
-  width: 2.6rem;
-  height: 2.6rem;
   padding: var(--space-xs);
   border-radius: var(--radius-md);
   background: transparent;
   transition: background 0.2s ease;
   flex-shrink: 0;
+}
+
+.nav-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--text-muted);
 }
 
 .back-btn:active,
@@ -38,7 +40,6 @@
   color: var(--text-muted);
   margin: 0 var(--space-md);
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
 }
 
 .path-nav::-webkit-scrollbar {

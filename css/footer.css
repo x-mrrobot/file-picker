@@ -13,14 +13,19 @@
   justify-content: center;
   width: 5.2rem;
   height: 5.2rem;
-  font-size: var(--fs-md);
+  font-size: 1.4rem;
   font-weight: bold;
   border-radius: var(--radius-full);
   color: var(--icon-default);
-  background: var(--icon-primary);
+  background: rgba(var(--primary-rgb), 0.6);
   backdrop-filter: blur(0.2rem);
   box-shadow: 0 0.2rem 0.3rem rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
+}
+
+.footer-icon {
+  width: 1.6rem;
+  height: 1.6rem;
 }
 
 .footer-actions {
@@ -38,4 +43,13 @@
 .floating-btn:active,
 .action-btn:active {
   transform: scale(0.9);
+}
+
+.floating-btn svg:last-child,
+.selection-active .floating-btn svg:first-child {
+  display: none;
+}
+
+.selection-active .floating-btn svg:last-child {
+  display: flex;
 }

@@ -10,12 +10,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
-  padding: var(--space-xs);
   margin: var(--space-lg);
   margin-bottom: 0;
-  border-radius: var(--radius-lg);
-  background: var(--bg-secondary);
-  box-shadow: 0 0 1px -1px rgba(0, 0, 0, 0.1);
 }
 
 .storage-device {
@@ -26,16 +22,28 @@
   gap: var(--space-md);
   padding: var(--space-md);
   border-radius: var(--radius-lg);
-  transition: box-shadow 0.3s ease;
+  transition: all 0.2s ease;
+  background: var(--bg-secondary);
 }
 
 .storage-device:active,
 .storage-device.active {
-  background: var(--bg-primary);
+  background: rgba(var(--primary-rgb), 0.4);
+}
+
+.light-theme .storage-device:active,
+.light-theme .storage-device.active {
+  background: transparent;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.6);
 }
 
 .device-icon {
-  font-size: var(--fs-lg);
+  display: flex;
+}
+
+.storage-icon {
+  width: 1.6rem;
+  height: 1.6rem;
   color: var(--text-muted);
 }
 
@@ -45,7 +53,7 @@
   color: var(--text-muted);
 }
 
-.storage-device.active .device-icon {
+.storage-device.active .storage-icon {
   color: var(--icon-primary);
 }
 

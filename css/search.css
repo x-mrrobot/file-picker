@@ -4,7 +4,7 @@
   align-items: center;
   gap: var(--space-md);
   flex: 1;
-  margin: 0 var(--space-lg);
+  margin: 0 var(--space-md);
   margin-right: 0;
 }
 
