@@ -5,6 +5,8 @@ const DOMElements = (function () {
 
   const elements = {
     storageContainer: getElement(".header-storage"),
+    sortButton: getElement("#sort-btn"),
+    sortDropdown: getElement("#sort-dropdown"),
     fileList: getElement("#file-list"),
     currentPath: getElement("#current-path"),
     backButton: getElement(".back-btn"),

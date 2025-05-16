@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/css/reset.css" />
     <link rel="stylesheet" href="/css/loading.css" />
     <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/sort.css" />
     <link rel="stylesheet" href="/css/navigation.css" />
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/file-list.css" />
@@ -22,8 +23,8 @@
     <!-- SCRIPTS -->
     <script src="/js/fileSystemData.js" defer></script>
     <script src="/js/webEnvironment.js" defer></script>
-    <script src="/js/Utils.js" defer></script>
     <script src="/js/EnvironmentManager.js" defer></script>
+    <script src="/js/Utils.js" defer></script>
     <script src="/js/I18nManager.js" defer></script>
     <script src="/js/AppState.js" defer></script>
     <script src="/js/CacheManager.js" defer></script>
@@ -34,6 +35,7 @@
     <script src="/js/SelectionManager.js" defer></script>
     <script src="/js/PaginationManager.js" defer></script>
     <script src="/js/FileListRenderer.js" defer></script>
+    <script src="/js/SortManager.js" defer></script>
     <script src="/js/PullToRefreshManager.js" defer></script>
     <script src="/js/UIRenderer.js" defer></script>
     <script src="/js/EventManager.js" defer></script>
@@ -88,6 +90,45 @@
               />
             </svg>
           </button>
+
+          <!-- SORT BUTTON AND DROPDOWN -->
+          <div class="sort-container">
+            <button class="sort-btn" id="sort-btn">
+              <svg
+                class="nav-icon"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+              >
+                <path d="m3 16 4 4 4-4" />
+                <path d="M7 20V4" />
+                <path d="m21 8-4-4-4 4" />
+                <path d="M17 4v16" />
+              </svg>
+            </button>
+
+            <div class="sort-dropdown" id="sort-dropdown">
+              <button class="dropdown-button" data-sort="name_asc">
+                Name (A-Z)
+              </button>
+              <button class="dropdown-button" data-sort="name_desc">
+                Name (Z-A)
+              </button>
+              <button class="dropdown-button" data-sort="size_asc">
+                Size (Smaller)
+              </button>
+              <button class="dropdown-button" data-sort="size_desc">
+                Size (Larger)
+              </button>
+              <button class="dropdown-button" data-sort="date_desc">
+                Date (Newer)
+              </button>
+              <button class="dropdown-button" data-sort="date_asc">
+                Date (Older)
+              </button>
+            </div>
+          </div>
         </section>
       </header>
 

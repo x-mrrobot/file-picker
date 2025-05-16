@@ -1,31 +1,24 @@
-const directoryStructure = `
-d 3488 Acode
-d 3488 Android
-d 3488 DCIM
-d 8192 Download
-d 3488 MP4
-d 3488 Movies
-d 3488 Music
-d 8192 PDF
-d 20480 PNG
-d 3488 Pictures
-d 3488 Recordings
-d 3488 Tasker
-d 20480 Telegram
-f 880 IMPORT.prj.xml
-f 530630 Screenshot_2025-03-31-12-59-39-236.jpg
-f 617793 Screenshot_2025-03-31-12-59-47-307.jpg
-f 4782 script.js
-f 13329 app_usage.json
-f 73668 contacts.json
-f 265917214 screen-20240328-145126.mp4
-f 40 script
-f 12 bash.sh
-f 0 tasker:termux.apk
-f 2241 transcription.py
-f 5064234 video#teste.mp4`;
+const directoryStructure = `d 3488 1717508833 Android
+d 3488 1747392647 Tasker
+f 40111 1747101333 diff.log
+d 3488 1746714220 Pictures
+d 3488 1746714220 Music
+d 8192 1747353460 Download
+d 3488 1746816266 DCIM
+d 3488 1743157791 Recordings
+d 3488 1747314596 Movies
+d 3488 1747401566 .mixplorer
+f 5064234 1727283047 video.mp4
+d 3488 1747356681 IA
+f 1150229 1743505167 Screenshot_2025-04-01-07-59-26-880.jpg
+f 1326302 1743505164 Screenshot_2025-04-01-07-59-23-884.jpg
+d 20480 1743028046 Telegram
+f 1148841 1743501172 image.png
+d 3488 1746451965 Acode`;
 
 const folderItemCount = {
+  ".mixplorer": 0,
+  IA: 7,
   Acode: 2,
   Android: 4,
   DCIM: 13,

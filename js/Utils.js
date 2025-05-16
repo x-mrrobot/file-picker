@@ -1,4 +1,4 @@
-const Utils = (function () {
+const Utils = (function (env) {
   function getExtensionFontSize(extension) {
     const length = extension.length;
     if (length <= 2) return "1.2rem";
@@ -59,6 +59,71 @@ const Utils = (function () {
     );
   }
 
+  function formatTimestamp(timestamp) {
+    if (!timestamp) return "";
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+
+    const diffMs = now - date;
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffSeconds < 60) {
+      return "Agora mesmo";
+    }
+
+    if (diffMinutes < 60) {
+      return diffMinutes === 1
+        ? "1 minuto atrás"
+        : `${diffMinutes} minutos atrás`;
+    }
+
+    if (diffHours < 24) {
+      return diffHours === 1 ? "1 hora atrás" : `${diffHours} horas atrás`;
+    }
+
+    if (diffDays < 7) {
+      const weekdays = [
+        "Domingo",
+        "Segunda",
+        "Terça",
+        "Quarta",
+        "Quinta",
+        "Sexta",
+        "Sábado"
+      ];
+      const weekday = weekdays[date.getDay()];
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+
+      return `${weekday}, ${hour}:${minute}`;
+    }
+
+    const month = date
+      .toLocaleString(env.languageCode, { month: "short" })
+      .replace(/\./, "");
+
+    const day = String(date.getDate()).padStart(2, "0");
+
+    const year = date.getFullYear();
+    const currentYear = now.getFullYear();
+
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+
+    if (year === currentYear) {
+      return `${capitalize(month)} ${day}, ${hour}:${minute}`;
+    } else {
+      return `${capitalize(month)} ${day}, ${year} ${hour}:${minute}`;
+    }
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   function getFileExtension(filename) {
     const parts = filename.split(".");
     return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
@@ -72,7 +137,8 @@ const Utils = (function () {
     getExtensionFontSize,
     escapeIdValue,
     formatBytes,
+    formatTimestamp,
     getFileExtension,
     isElementConnected
   };
-})();
+})(currentEnvironment);

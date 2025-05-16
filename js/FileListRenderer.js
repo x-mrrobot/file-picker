@@ -1,57 +1,86 @@
 const FileListRenderer = (function () {
   let processingSubfolderCount = 0;
 
-  function generateFileItemHTML(item) {
+  let contentCache = {
+    items: null,
+    htmlContent: ""
+  };
+
+  function generateItemIcon(item, extension) {
     const isDirectory = item.type === "d";
 
-    const extension = isDirectory ? "" : Utils.getFileExtension(item.name);
+    if (isDirectory) {
+      return `
+      <svg class="folder-icon" viewBox="0 0 576 512" fill="currentColor">
+        <path d="M572.694 292.093L500.27 416.248A63.997 63.997 0 0 1 444.989 448H45.025c-18.523 0-30.064-20.093-20.731-36.093l72.424-124.155A64 64 0 0 1 152 256h399.964c18.523 0 30.064 20.093 20.73 36.093zM152 224h328v-48c0-26.51-21.49-48-48-48H272l-64-64H48C21.49 64 0 85.49 0 112v278.046l69.077-118.418C86.214 242.25 117.989 224 152 224z"/>
+      </svg>`;
+    } else {
+      const fontSize = Utils.getExtensionFontSize(extension);
+      return `<div class="file-extension" style="font-size: ${fontSize}">${extension}</div>`;
+    }
+  }
 
-    const itemTypeClass = isDirectory ? "folder" : "file";
+  function generateMetadataItems(item) {
+    const isDirectory = item.type === "d";
+    const formattedDate = Utils.formatTimestamp(item.modified);
+    let metadataItems = "";
 
-    const fontSize = Utils.getExtensionFontSize(extension);
+    if (isDirectory) {
+      metadataItems += `
+      <span class="item-count" data-subfolder="${item.name}">...</span>`;
+    } else {
+      metadataItems += `
+      <span class="item-size">${Utils.formatBytes(item.size)}</span>
+     `;
+    }
+    metadataItems += `<span class="item-date">${formattedDate}</span>`;
 
-    const itemMetadata = isDirectory
-      ? `<span class="item-count" data-subfolder="${item.name}">...</span>`
-      : Utils.formatBytes(item.size);
+    return metadataItems;
+  }
 
-    const itemIndicator = isDirectory
-      ? `<div class="item-indicator">
-        <svg class="indicator-icon" viewBox="0 0 320 512" fill="currentColor">
-          <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/>
-        </svg>
-      </div>`
-      : "";
-
-    const escapedName = Utils.escapeIdValue(item.name);
-
+  function isItemSelected(item) {
     const fullItemPath = FileManager.buildFullPath(item.name);
-    const isSelected = AppState.file.selectedItems.has(fullItemPath);
+    return AppState.file.selectedItems.has(fullItemPath);
+  }
+
+  function generateFileItemHTML(item) {
+    const isDirectory = item.type === "d";
+    const extension = isDirectory ? "" : Utils.getFileExtension(item.name);
+    const itemTypeClass = isDirectory ? "folder" : "file";
+    const escapedName = Utils.escapeIdValue(item.name);
+    const selected = isItemSelected(item) ? "checked" : "";
 
     return `
-    <div class="item-entry ${itemTypeClass}" data-name="${item.name}">
-      <input type="checkbox" id="check-${escapedName}" class="checkbox" ${
-        isSelected ? "checked" : ""
-      }>
+  <article class="item-entry ${itemTypeClass}" data-name="${item.name}">
+      <input type="checkbox" id="check-${escapedName}" class="checkbox" ${selected}>
+      
       <div class="item-icon">
-        ${
-          isDirectory
-            ? `<svg class="folder-icon" viewBox="0 0 576 512" fill="currentColor">
-                <path d="M572.694 292.093L500.27 416.248A63.997 63.997 0 0 1 444.989 448H45.025c-18.523 0-30.064-20.093-20.731-36.093l72.424-124.155A64 64 0 0 1 152 256h399.964c18.523 0 30.064 20.093 20.73 36.093zM152 224h328v-48c0-26.51-21.49-48-48-48H272l-64-64H48C21.49 64 0 85.49 0 112v278.046l69.077-118.418C86.214 242.25 117.989 224 152 224z"/>
-              </svg>`
-            : `<div class="file-extension" style="font-size: ${fontSize}">${extension}</div>`
-        }
+        ${generateItemIcon(item, extension)}
       </div>
+      
       <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-metadata">${itemMetadata}</div>
+        <h3 class="item-name">${item.name}</h3>
+        <div class="item-metadata">
+          ${generateMetadataItems(item)}
+        </div>
       </div>
-      ${itemIndicator}
-    </div>
-  `;
+  </article>`;
   }
 
   function generateFileItemsHTML(items) {
-    return items.map(generateFileItemHTML).join("");
+    if (contentCache.items === items) {
+      return contentCache.htmlContent;
+    }
+
+    let html = "";
+    for (let i = 0; i < items.length; i++) {
+      html += generateFileItemHTML(items[i]);
+    }
+
+    contentCache.items = items;
+    contentCache.htmlContent = html;
+
+    return html;
   }
 
   function appendFileItemsToDOM(htmlContent) {
@@ -73,7 +102,12 @@ const FileListRenderer = (function () {
     if (folderItems.length) {
       const lastSubfolder = folderItems[folderItems.length - 1].name;
 
-      folderItems.forEach(item => processSubfolder(item.name, lastSubfolder));
+      const processPromises = [];
+      for (let i = 0; i < folderItems.length; i++) {
+        processPromises.push(
+          processSubfolder(folderItems[i].name, lastSubfolder)
+        );
+      }
     }
   }
 
@@ -81,19 +115,20 @@ const FileListRenderer = (function () {
     const currentPath = NavigationManager.getCurrentPath();
     processingSubfolderCount++;
 
-    FileManager.processSubfolderCount(currentPath, subfolder)
+    return FileManager.processSubfolderCount(currentPath, subfolder)
       .then(itemCount => {
         UIRenderer.updateSubfolderCount(subfolder, itemCount);
       })
       .catch(() => {})
       .finally(() => {
-        if (processingSubfolderCount == 1) {
+        processingSubfolderCount--;
+
+        if (processingSubfolderCount === 0) {
           CacheManager.updateCacheEntry(
             currentPath,
             AppState.file.subfolderData
           );
         }
-        processingSubfolderCount--;
       });
   }
 
@@ -103,19 +138,65 @@ const FileListRenderer = (function () {
     )}</div>`;
   }
 
+  let paginationCache = {
+    filteredItems: null,
+    currentPage: null,
+    sortPreference: null,
+    result: null
+  };
+
   function getItemsToRender() {
+    const currentSortPreference = SortManager.getSortPreference();
+
     if (AppState.ui.searchActive) {
-      return AppState.file.filteredItems;
+      const filteredItems = AppState.file.filteredItems;
+
+      if (
+        paginationCache.filteredItems === filteredItems &&
+        paginationCache.sortPreference === currentSortPreference
+      ) {
+        return paginationCache.result;
+      }
+
+      const sortedItems = SortManager.sortItems(filteredItems);
+
+      paginationCache.filteredItems = filteredItems;
+      paginationCache.sortPreference = currentSortPreference;
+      paginationCache.result = sortedItems;
+
+      return sortedItems;
     } else {
-      return AppState.file.fileSystemData.slice(
-        0,
-        AppState.ui.currentPage * AppState.ui.pageSize
-      );
+      const allItems = AppState.file.fileSystemData;
+      const currentPage = AppState.ui.currentPage;
+
+      if (
+        paginationCache.filteredItems === allItems &&
+        paginationCache.currentPage === currentPage &&
+        paginationCache.sortPreference === currentSortPreference
+      ) {
+        return paginationCache.result;
+      }
+
+      const sortedItems = SortManager.sortItems(allItems);
+      const endIndex = currentPage * AppState.ui.pageSize;
+      const pagedItems = sortedItems.slice(0, endIndex);
+
+      paginationCache.filteredItems = allItems;
+      paginationCache.currentPage = currentPage;
+      paginationCache.sortPreference = currentSortPreference;
+      paginationCache.result = pagedItems;
+
+      return pagedItems;
     }
   }
 
   function renderFileList() {
     DOMElements.fileList.innerHTML = "";
+
+    contentCache = {
+      items: null,
+      htmlContent: ""
+    };
 
     const itemsToRender = getItemsToRender();
 
@@ -138,15 +219,53 @@ const FileListRenderer = (function () {
   function appendFileListItems() {
     if (AppState.ui.searchActive) return;
 
-    const startIndex = (AppState.ui.currentPage - 1) * AppState.ui.pageSize;
-    const endIndex = AppState.ui.currentPage * AppState.ui.pageSize;
-    const itemsToAppend = AppState.file.fileSystemData.slice(
-      startIndex,
-      endIndex
-    );
+    const currentPage = AppState.ui.currentPage;
+    const pageSize = AppState.ui.pageSize;
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = currentPage * pageSize;
 
-    renderItems(itemsToAppend);
+    const allItems = AppState.file.fileSystemData;
+    const allSortedItems = SortManager.sortItems(allItems);
+    const itemsToAppend = allSortedItems.slice(startIndex, endIndex);
+
+    if (itemsToAppend.length > 0) {
+      renderItems(itemsToAppend);
+    }
+
+    paginationCache.filteredItems = allItems;
+    paginationCache.currentPage = currentPage;
+    paginationCache.sortPreference = SortManager.getSortPreference();
+    paginationCache.result = allSortedItems.slice(0, endIndex);
   }
+
+  AppState.on("FILE_SYSTEM_CHANGE", () => {
+    contentCache = { items: null, htmlContent: "" };
+    paginationCache = {
+      filteredItems: null,
+      currentPage: null,
+      sortPreference: null,
+      result: null
+    };
+  });
+
+  AppState.on("SORT_PREFERENCE_CHANGE", () => {
+    paginationCache = {
+      filteredItems: null,
+      currentPage: null,
+      sortPreference: null,
+      result: null
+    };
+
+    renderFileList();
+  });
+
+  AppState.on("FILE_SYSTEM_CHANGE", () => {
+    renderFileList();
+  });
+
+  AppState.on("FILTERED_ITEMS_CHANGE", () => {
+    renderFileList();
+  });
 
   return {
     renderFileList,

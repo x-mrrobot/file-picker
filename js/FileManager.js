@@ -9,10 +9,13 @@ const FileManager = (env => {
   }
 
   function parseDirectoryOutput(rawData) {
-    const regex = /([df])\s+(\d+)\s+(.+)/;
+    const regex = /([df])\s+(\d+)\s+(\d+)\s(.+)/;
     const re = new RegExp(regex, "gm");
     rawData = rawData
-      .replace(re, '{ "name": "$3", "size": $2, "type": "$1" },')
+      .replace(
+        re,
+        '{ "name": "$4", "size": $2, "type": "$1", "modified": $3 },'
+      )
       .replace(/.$/, "");
     return JSON.parse(`[${rawData}]`);
   }

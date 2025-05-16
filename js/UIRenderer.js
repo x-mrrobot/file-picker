@@ -132,25 +132,25 @@ const UIRenderer = (function () {
   }
 
   AppState.on("PATH_HISTORY_CHANGE", () => {
-    UIRenderer.updateActiveStorageDevice();
+    updateActiveStorageDevice();
     updatePathDisplay();
   });
+
   AppState.on("STORAGE_PATH_ADD", storagePath => {
-    UIRenderer.renderStorageData(storagePath);
+    renderStorageData(storagePath);
   });
-  AppState.on("SELECTION_CHANGE", updateSelectionCounter);
+
+  AppState.on("SELECTION_CHANGE", () => {
+    updateSelectionCounter();
+  });
+
   AppState.on("SELECTION_MODE_CHANGE", () => {
     updateSelectionDisplay();
     updateSelectionCounter();
   });
-  AppState.on("FILE_SYSTEM_CHANGE", () => {
-    FileListRenderer.renderFileList();
-  });
+
   AppState.on("SEARCH_MODE_CHANGE", () => {
     updateSearchUI(AppState.ui.searchActive);
-  });
-  AppState.on("FILTERED_ITEMS_CHANGE", () => {
-    FileListRenderer.renderFileList();
   });
 
   return {

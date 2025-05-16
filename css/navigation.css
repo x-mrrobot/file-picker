@@ -1,33 +1,36 @@
 /* Header-nav */
 .header-nav {
+  position: relative;
   display: flex;
   align-items: center;
   padding: var(--space-lg);
-  overflow: hidden;
 }
 
 .back-btn,
 .search-btn,
-.close-search-btn {
+.close-search-btn,
+.sort-btn {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: var(--space-xs);
   border-radius: var(--radius-md);
   background: transparent;
+  border: 1px solid var(--border);
   transition: background 0.2s ease;
   flex-shrink: 0;
 }
 
 .nav-icon {
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.4rem;
+  height: 1.4rem;
   color: var(--text-muted);
 }
 
 .back-btn:active,
 .search-btn:active,
-.close-search-btn:active {
+.close-search-btn:active,
+.sort-btn:active {
   background: var(--bg-secondary);
 }
 

@@ -64,8 +64,9 @@
 
 .file .item-icon {
   padding: var(--space-xs);
-  box-shadow: 0 -1px 1px 0 rgba(var(--primary-rgb), 0.6),
-  0 1px 1px 0.1rem rgba(var(--primary-rgb), 0.6);
+  box-shadow:
+    0 -1px 1px 0 rgba(var(--primary-rgb), 0.6),
+    0 1px 1px 0.1rem rgba(var(--primary-rgb), 0.6);
 }
 
 .file-extension {
@@ -100,13 +101,9 @@
 .item-metadata {
   display: flex;
   justify-content: space-between;
-  font-size: var(--fs-sm);
+  align-items: center;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
-}
-
-.indicator-icon {
-  height: 1.2rem;
-  color: var(--text-muted);
 }
 
 .no-files {

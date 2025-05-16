@@ -48,6 +48,29 @@ const EventManager = (function (env) {
       }
     });
 
+    dom.sortButton.addEventListener("click", () => {
+      dom.sortDropdown.classList.toggle("show");
+      if (dom.sortDropdown.classList.contains("show")) {
+        const currentSort = SortManager.getSortPreference();
+        const buttons = dom.sortDropdown.querySelectorAll("button");
+        buttons.forEach(button => {
+          button.classList.remove("active");
+          if (button.dataset.sort === currentSort) {
+            button.classList.add("active");
+          }
+        });
+      }
+    });
+
+    dom.sortDropdown.addEventListener("click", event => {
+      const targetButton = event.target.closest("button[data-sort]");
+      if (targetButton) {
+        const sortType = targetButton.dataset.sort;
+        SortManager.setSortPreference(sortType);
+        dom.sortDropdown.classList.remove("show");
+      }
+    });
+
     dom.fileList.addEventListener("scroll", function () {
       dom.fileList.classList.add("scrolling");
 
