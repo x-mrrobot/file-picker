@@ -25,6 +25,7 @@
   width: 100%;
   padding: var(--space-md) var(--space-xl);
   color: var(--text-primary);
+  white-space: nowrap;
   text-align: left;
   background: transparent;
   font-size: var(--fs-sm);

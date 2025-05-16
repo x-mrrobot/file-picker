@@ -61,6 +61,7 @@ const Utils = (function (env) {
 
   function formatTimestamp(timestamp) {
     if (!timestamp) return "";
+
     const date = new Date(timestamp * 1000);
     const now = new Date();
 
@@ -71,57 +72,59 @@ const Utils = (function (env) {
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffSeconds < 60) {
-      return "Agora mesmo";
+      return I18nManager.translate("timestamp_just_now");
     }
 
     if (diffMinutes < 60) {
       return diffMinutes === 1
-        ? "1 minuto atrás"
-        : `${diffMinutes} minutos atrás`;
+        ? I18nManager.translate("timestamp_minute_ago")
+        : I18nManager.translate("timestamp_minutes_ago", {
+            count: diffMinutes
+          });
     }
 
     if (diffHours < 24) {
-      return diffHours === 1 ? "1 hora atrás" : `${diffHours} horas atrás`;
+      return diffHours === 1
+        ? I18nManager.translate("timestamp_hour_ago")
+        : I18nManager.translate("timestamp_hours_ago", { count: diffHours });
     }
 
     if (diffDays < 7) {
-      const weekdays = [
-        "Domingo",
-        "Segunda",
-        "Terça",
-        "Quarta",
-        "Quinta",
-        "Sexta",
-        "Sábado"
+      const weekdayKeys = [
+        "day_sunday",
+        "day_monday",
+        "day_tuesday",
+        "day_wednesday",
+        "day_thursday",
+        "day_friday",
+        "day_saturday"
       ];
-      const weekday = weekdays[date.getDay()];
+
+      const weekday = I18nManager.translate(weekdayKeys[date.getDay()]);
       const hour = String(date.getHours()).padStart(2, "0");
       const minute = String(date.getMinutes()).padStart(2, "0");
 
       return `${weekday}, ${hour}:${minute}`;
     }
 
+    const currentLocale = I18nManager.getCurrentLocale();
     const month = date
-      .toLocaleString(env.languageCode, { month: "short" })
+      .toLocaleString(currentLocale, { month: "short" })
       .replace(/\./, "");
 
     const day = String(date.getDate()).padStart(2, "0");
-
     const year = date.getFullYear();
     const currentYear = now.getFullYear();
-
     const hour = String(date.getHours()).padStart(2, "0");
     const minute = String(date.getMinutes()).padStart(2, "0");
 
     if (year === currentYear) {
-      return `${capitalize(month)} ${day}, ${hour}:${minute}`;
+      return `${I18nManager.capitalize(month)} ${day}, ${hour}:${minute}`;
     } else {
-      return `${capitalize(month)} ${day}, ${year} ${hour}:${minute}`;
+      return `${I18nManager.capitalize(
+        month
+      )} ${day}, ${year} ${hour}:${minute}`;
     }
-  }
-
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   function getFileExtension(filename) {
