@@ -4,6 +4,7 @@ const DOMElements = (function () {
   }
 
   const elements = {
+    overlay: getElement("#overlay"),
     storageContainer: getElement(".header-storage"),
     sortButton: getElement("#sort-btn"),
     sortDropdown: getElement("#sort-dropdown"),

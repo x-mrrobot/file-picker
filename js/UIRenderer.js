@@ -1,4 +1,4 @@
-const UIRenderer = (function () {
+const UIRenderer = (function (dom) {
   function updateActiveStorageDevice() {
     const currentPath = NavigationManager.getCurrentPath();
     const storageDevices = document.querySelectorAll(".storage-device");
@@ -15,7 +15,7 @@ const UIRenderer = (function () {
   }
 
   function updateSubfolderCount(subfolder, itemCount) {
-    DOMElements.updateElement(`[data-subfolder="${subfolder}"]`, element => {
+    dom.updateElement(`[data-subfolder="${subfolder}"]`, element => {
       element.textContent = I18nManager.translatePlural(
         "items_count",
         itemCount
@@ -35,7 +35,7 @@ const UIRenderer = (function () {
     };
 
     if (isInternalStorage) {
-      DOMElements.storageContainer.innerHTML = "";
+      dom.storageContainer.innerHTML = "";
     }
 
     const storageDevice = document.createElement("div");
@@ -59,7 +59,7 @@ const UIRenderer = (function () {
       </h2>
     `;
 
-    DOMElements.storageContainer.appendChild(storageDevice);
+    dom.storageContainer.appendChild(storageDevice);
   }
 
   function updatePathDisplay() {
@@ -78,15 +78,15 @@ const UIRenderer = (function () {
       return ` ${separator} <span class="path-item" data-index="${index}">${displayName}</span>`;
     });
 
-    DOMElements.currentPath.innerHTML = pathItems.join("");
+    dom.currentPath.innerHTML = pathItems.join("");
 
     requestAnimationFrame(() => {
-      DOMElements.currentPath.scrollLeft = DOMElements.currentPath.scrollWidth;
+      dom.currentPath.scrollLeft = dom.currentPath.scrollWidth;
     });
   }
 
   function showLoadingIndicator() {
-    DOMElements.fileList.innerHTML = `  
+    dom.fileList.innerHTML = `  
       <div class="loading"></div>  
     `;
   }
@@ -103,21 +103,28 @@ const UIRenderer = (function () {
     }
   }
 
+  function toggleOverlay(show) {
+    if (show) {
+      overlay.classList.add("active");
+      return;
+    }
+
+    dom.overlay.classList.remove("active");
+  }
+
   function updateSelectionCounter() {
-    DOMElements.selectionCounter.textContent =
+    dom.selectionCounter.textContent =
       SelectionManager.getSelectedItems().length;
   }
 
   function updateItemCheckbox(itemName) {
     const escapedName = Utils.escapeIdValue(itemName);
-    DOMElements.updateElement(`#check-${escapedName}`, checkbox => {
+    dom.updateElement(`#check-${escapedName}`, checkbox => {
       checkbox.checked = !checkbox.checked;
     });
   }
 
   function updateSearchUI(active) {
-    const dom = DOMElements;
-
     if (active) {
       dom.currentPath.classList.add("hidden");
       dom.searchContainer.classList.add("active");
@@ -160,8 +167,9 @@ const UIRenderer = (function () {
     updatePathDisplay,
     showLoadingIndicator,
     updateSelectionDisplay,
+    toggleOverlay,
     updateSelectionCounter,
     updateItemCheckbox,
     updateSearchUI
   };
-})();
+})(DOMElements);

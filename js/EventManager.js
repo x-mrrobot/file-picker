@@ -59,6 +59,9 @@ const EventManager = (function (env) {
             button.classList.add("active");
           }
         });
+        UIRenderer.toggleOverlay(true);
+      } else {
+        UIRenderer.toggleOverlay(false);
       }
     });
 
@@ -68,7 +71,13 @@ const EventManager = (function (env) {
         const sortType = targetButton.dataset.sort;
         SortManager.setSortPreference(sortType);
         dom.sortDropdown.classList.remove("show");
+        UIRenderer.toggleOverlay(false);
       }
+    });
+
+    dom.overlay.addEventListener("click", () => {
+      dom.sortDropdown.classList.remove("show");
+      UIRenderer.toggleOverlay(false);
     });
 
     dom.fileList.addEventListener("scroll", function () {
