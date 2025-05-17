@@ -8,8 +8,10 @@
 /* Header-storage */
 .header-storage {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--space-md);
+  min-height: 4.2rem;
   margin: var(--space-lg);
   margin-bottom: 0;
 }

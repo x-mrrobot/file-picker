@@ -10,20 +10,18 @@ const App = (function (env) {
     }
   }
 
-  function updateStoragePaths() {
-    const internalStoragePath = "/storage/emulated/0";
-    AppState.addStoragePath(internalStoragePath);
-
+  function loadSdCard() {
     const sdCardPath = FileManager.getSdCard();
     if (sdCardPath) {
       AppState.addStoragePath(sdCardPath);
     }
+    UIRenderer.displayStorageDevices();
   }
 
   function initialize() {
     applyTheme();
     I18nManager.initialize();
-    updateStoragePaths();
+    loadSdCard();
     EventManager.setupEventListeners();
 
     NavigationManager.goToFolder(AppState.file.storagePaths[0]);

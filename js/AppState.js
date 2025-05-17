@@ -1,7 +1,7 @@
 const AppState = (function () {
   const state = {
     file: {
-      storagePaths: [],
+      storagePaths: ["/storage/emulated/0"],
       pathHistory: [],
       fileSystemData: [],
       subfolderData: {},
@@ -38,7 +38,6 @@ const AppState = (function () {
 
   function addStoragePath(path) {
     state.file.storagePaths.push(path);
-    emit("STORAGE_PATH_ADD", path);
   }
 
   function clearSelectedItems() {

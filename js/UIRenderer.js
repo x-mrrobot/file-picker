@@ -3,6 +3,8 @@ const UIRenderer = (function (dom) {
     const currentPath = NavigationManager.getCurrentPath();
     const storageDevices = document.querySelectorAll(".storage-device");
 
+    if (storageDevices.length < 2) return;
+
     storageDevices.forEach(device => {
       const devicePath = device.dataset.storage;
 
@@ -23,43 +25,47 @@ const UIRenderer = (function (dom) {
     });
   }
 
-  function renderStorageData(storagePath) {
-    const isInternalStorage = storagePath.includes("emulated/0");
+  function createStorageDeviceElement(devicePath) {
+    const isInternalDevice = devicePath.includes("emulated/0");
 
-    const deviceData = {
-      title: isInternalStorage
-        ? I18nManager.translate("internal_storage")
-        : I18nManager.translate("sd_card"),
-      icon: isInternalStorage ? "fa-mobile" : "fa-sd-card",
-      className: isInternalStorage ? "internal-storage" : "external-storage"
-    };
+    const deviceTitle = isInternalDevice
+      ? I18nManager.translate("internal_storage")
+      : I18nManager.translate("sd_card");
 
-    if (isInternalStorage) {
-      dom.storageContainer.innerHTML = "";
-    }
+    const deviceCssClass = isInternalDevice
+      ? "internal-storage"
+      : "external-storage";
 
-    const storageDevice = document.createElement("div");
-    storageDevice.className = `storage-device ${deviceData.className}`;
-    storageDevice.dataset.storage = storagePath;
+    const deviceElement = document.createElement("div");
+    deviceElement.className = `storage-device ${deviceCssClass}`;
+    deviceElement.dataset.storage = devicePath;
 
-    storageDevice.innerHTML = `
-      <div class="device-icon">
-        ${
-          isInternalStorage
-            ? `<svg class="storage-icon" viewBox="0 0 320 512" fill="currentColor">
-                <path d="M272 0H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h224c26.5 0 48-21.5 48-48V48c0-26.5-21.5-48-48-48zM160 480c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/>
-              </svg>`
-            : `<svg class="storage-icon" viewBox="0 0 384 512" fill="currentColor">
-                <path d="M320 0H128L0 128v320c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64zM160 160h-48V64h48v96zm80 0h-48V64h48v96zm80 0h-48V64h48v96z"/>
-              </svg>`
-        }
-      </div>
-      <h2 class="device-name">
-        ${deviceData.title}
-      </h2>
-    `;
+    deviceElement.innerHTML = `
+    <div class="device-icon">
+      ${
+        isInternalDevice
+          ? `<svg class="storage-icon" viewBox="0 0 320 512" fill="currentColor">
+              <path d="M272 0H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h224c26.5 0 48-21.5 48-48V48c0-26.5-21.5-48-48-48zM160 480c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/>
+            </svg>`
+          : `<svg class="storage-icon" viewBox="0 0 384 512" fill="currentColor">
+              <path d="M320 0H128L0 128v320c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64zM160 160h-48V64h48v96zm80 0h-48V64h48v96zm80 0h-48V64h48v96z"/>
+            </svg>`
+      }
+    </div>
+    <h2 class="device-name">
+      ${deviceTitle}
+    </h2>
+  `;
 
-    dom.storageContainer.appendChild(storageDevice);
+    return deviceElement;
+  }
+
+  function displayStorageDevices() {
+    const devicePaths = AppState.file.storagePaths;
+
+    const deviceElements = devicePaths.map(createStorageDeviceElement);
+
+    dom.storageContainer.append(...deviceElements);
   }
 
   function updatePathDisplay() {
@@ -143,10 +149,6 @@ const UIRenderer = (function (dom) {
     updatePathDisplay();
   });
 
-  AppState.on("STORAGE_PATH_ADD", storagePath => {
-    renderStorageData(storagePath);
-  });
-
   AppState.on("SELECTION_CHANGE", () => {
     updateSelectionCounter();
   });
@@ -161,9 +163,8 @@ const UIRenderer = (function (dom) {
   });
 
   return {
-    updateActiveStorageDevice,
     updateSubfolderCount,
-    renderStorageData,
+    displayStorageDevices,
     updatePathDisplay,
     showLoadingIndicator,
     updateSelectionDisplay,

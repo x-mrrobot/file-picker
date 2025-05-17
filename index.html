@@ -34,6 +34,7 @@
     <script src="/js/SearchManager.js" defer></script>
     <script src="/js/SelectionManager.js" defer></script>
     <script src="/js/PaginationManager.js" defer></script>
+    <script src="/js/SubfolderQueueManager.js" defer></script>
     <script src="/js/FileListRenderer.js" defer></script>
     <script src="/js/SortManager.js" defer></script>
     <script src="/js/PullToRefreshManager.js" defer></script>
@@ -44,16 +45,11 @@
   <body>
     <div class="app">
       <div class="overlay" id="overlay"></div>
-      
+
       <!-- HEADER -->
       <header class="header">
         <!-- STORAGE -->
-        <section class="header-storage">
-          <article class="storage-device" data-storage="/storage/emulated/0">
-            <div class="device-icon"></div>
-            <h2 class="device-name">Armazenamento</h2>
-          </article>
-        </section>
+        <section class="header-storage"></section>
 
         <!-- NAVIGATION -->
         <section class="header-nav">

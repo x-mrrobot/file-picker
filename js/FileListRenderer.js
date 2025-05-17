@@ -246,6 +246,8 @@ const FileListRenderer = (function () {
       sortPreference: null,
       result: null
     };
+
+    renderFileList();
   });
 
   AppState.on("SORT_PREFERENCE_CHANGE", () => {
@@ -256,10 +258,6 @@ const FileListRenderer = (function () {
       result: null
     };
 
-    renderFileList();
-  });
-
-  AppState.on("FILE_SYSTEM_CHANGE", () => {
     renderFileList();
   });
 
