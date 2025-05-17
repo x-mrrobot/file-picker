@@ -44,19 +44,15 @@
 .storage-icon {
   width: 1.6rem;
   height: 1.6rem;
-  color: var(--text-muted);
+  color: var(--icon-primary);
 }
 
 .device-name {
   text-align: center;
   font-size: var(--fs-md);
-  color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .storage-device.active .storage-icon {
-  color: var(--icon-primary);
-}
-
-.storage-device.active .device-name {
-  color: var(--text-primary);
+  color: var(--primary);
 }
