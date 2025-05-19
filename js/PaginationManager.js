@@ -1,15 +1,9 @@
 const PaginationManager = (function () {
-  let isInitialized = false;
   const scrollThreshold = 200;
 
   function init() {
-    if (isInitialized) return;
-
     const fileList = DOMElements.fileList;
-    fileList.removeEventListener("scroll", handleScroll);
     fileList.addEventListener("scroll", handleScroll);
-
-    isInitialized = true;
   }
 
   function handleScroll() {

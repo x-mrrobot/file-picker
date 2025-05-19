@@ -25,6 +25,7 @@ const App = (function (env) {
     EventManager.setupEventListeners();
 
     NavigationManager.goToFolder(AppState.file.storagePaths[0]);
+    PaginationManager.init();
     PullToRefreshManager.init();
   }
 

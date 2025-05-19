@@ -6,7 +6,6 @@ const NavigationManager = (function (env) {
   function navigateToPath(newPath) {
     UIRenderer.showLoadingIndicator();
 
-    AppState.file.subfolderData = {};
     AppState.clearSelectedItems();
     AppState.resetPage();
 

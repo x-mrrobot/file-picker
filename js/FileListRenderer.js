@@ -1,11 +1,4 @@
-const FileListRenderer = (function () {
-  let processingSubfolderCount = 0;
-
-  let contentCache = {
-    items: null,
-    htmlContent: ""
-  };
-
+const FileListRenderer = (function (dom) {
   function generateItemIcon(item, extension) {
     const isDirectory = item.type === "d";
 
@@ -68,18 +61,10 @@ const FileListRenderer = (function () {
   }
 
   function generateFileItemsHTML(items) {
-    if (contentCache.items === items) {
-      return contentCache.htmlContent;
-    }
-
     let html = "";
     for (let i = 0; i < items.length; i++) {
       html += generateFileItemHTML(items[i]);
     }
-
-    contentCache.items = items;
-    contentCache.htmlContent = html;
-
     return html;
   }
 
@@ -90,113 +75,46 @@ const FileListRenderer = (function () {
     while (tempContainer.firstChild) {
       fragment.appendChild(tempContainer.firstChild);
     }
-    DOMElements.fileList.appendChild(fragment);
+    dom.fileList.appendChild(fragment);
   }
 
   function renderItems(items) {
     const htmlContent = generateFileItemsHTML(items);
     appendFileItemsToDOM(htmlContent);
 
-    const folderItems = items.filter(item => item.type === "d");
-
-    if (folderItems.length) {
-      const lastSubfolder = folderItems[folderItems.length - 1].name;
-
-      const processPromises = [];
-      for (let i = 0; i < folderItems.length; i++) {
-        processPromises.push(
-          processSubfolder(folderItems[i].name, lastSubfolder)
-        );
+    const folderNames = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type === "d") {
+        folderNames.push(items[i].name);
       }
+    }
+
+    if (folderNames.length) {
+      SubfolderQueueManager.processSubfolders(folderNames);
     }
   }
 
-  function processSubfolder(subfolder, lastSubfolder) {
-    const currentPath = NavigationManager.getCurrentPath();
-    processingSubfolderCount++;
-
-    return FileManager.processSubfolderCount(currentPath, subfolder)
-      .then(itemCount => {
-        UIRenderer.updateSubfolderCount(subfolder, itemCount);
-      })
-      .catch(() => {})
-      .finally(() => {
-        processingSubfolderCount--;
-
-        if (processingSubfolderCount === 0) {
-          CacheManager.updateCacheEntry(
-            currentPath,
-            AppState.file.subfolderData
-          );
-        }
-      });
-  }
-
   function renderEmptyState() {
-    DOMElements.fileList.innerHTML = `<div class="no-files" data-i18n="no_files">${I18nManager.translate(
+    dom.fileList.innerHTML = `<div class="no-files" data-i18n="no_files">${I18nManager.translate(
       "no_files"
     )}</div>`;
   }
 
-  let paginationCache = {
-    filteredItems: null,
-    currentPage: null,
-    sortPreference: null,
-    result: null
-  };
-
   function getItemsToRender() {
-    const currentSortPreference = SortManager.getSortPreference();
-
     if (AppState.ui.searchActive) {
       const filteredItems = AppState.file.filteredItems;
-
-      if (
-        paginationCache.filteredItems === filteredItems &&
-        paginationCache.sortPreference === currentSortPreference
-      ) {
-        return paginationCache.result;
-      }
-
-      const sortedItems = SortManager.sortItems(filteredItems);
-
-      paginationCache.filteredItems = filteredItems;
-      paginationCache.sortPreference = currentSortPreference;
-      paginationCache.result = sortedItems;
-
-      return sortedItems;
+      return SortManager.sortItems(filteredItems);
     } else {
       const allItems = AppState.file.fileSystemData;
-      const currentPage = AppState.ui.currentPage;
-
-      if (
-        paginationCache.filteredItems === allItems &&
-        paginationCache.currentPage === currentPage &&
-        paginationCache.sortPreference === currentSortPreference
-      ) {
-        return paginationCache.result;
-      }
-
       const sortedItems = SortManager.sortItems(allItems);
+      const currentPage = AppState.ui.currentPage;
       const endIndex = currentPage * AppState.ui.pageSize;
-      const pagedItems = sortedItems.slice(0, endIndex);
-
-      paginationCache.filteredItems = allItems;
-      paginationCache.currentPage = currentPage;
-      paginationCache.sortPreference = currentSortPreference;
-      paginationCache.result = pagedItems;
-
-      return pagedItems;
+      return sortedItems.slice(0, endIndex);
     }
   }
 
   function renderFileList() {
-    DOMElements.fileList.innerHTML = "";
-
-    contentCache = {
-      items: null,
-      htmlContent: ""
-    };
+    dom.fileList.innerHTML = "";
 
     const itemsToRender = getItemsToRender();
 
@@ -208,12 +126,8 @@ const FileListRenderer = (function () {
     renderItems(itemsToRender);
 
     requestAnimationFrame(() => {
-      DOMElements.fileList.scrollTop = 0;
+      dom.fileList.scrollTop = 0;
     });
-
-    if (!AppState.ui.searchActive) {
-      PaginationManager.init();
-    }
   }
 
   function appendFileListItems() {
@@ -231,42 +145,14 @@ const FileListRenderer = (function () {
     if (itemsToAppend.length > 0) {
       renderItems(itemsToAppend);
     }
-
-    paginationCache.filteredItems = allItems;
-    paginationCache.currentPage = currentPage;
-    paginationCache.sortPreference = SortManager.getSortPreference();
-    paginationCache.result = allSortedItems.slice(0, endIndex);
   }
 
-  AppState.on("FILE_SYSTEM_CHANGE", () => {
-    contentCache = { items: null, htmlContent: "" };
-    paginationCache = {
-      filteredItems: null,
-      currentPage: null,
-      sortPreference: null,
-      result: null
-    };
-
-    renderFileList();
-  });
-
-  AppState.on("SORT_PREFERENCE_CHANGE", () => {
-    paginationCache = {
-      filteredItems: null,
-      currentPage: null,
-      sortPreference: null,
-      result: null
-    };
-
-    renderFileList();
-  });
-
-  AppState.on("FILTERED_ITEMS_CHANGE", () => {
-    renderFileList();
-  });
+  AppState.on("FILE_SYSTEM_CHANGE", renderFileList);
+  AppState.on("SORT_PREFERENCE_CHANGE", renderFileList);
+  AppState.on("FILTERED_ITEMS_CHANGE", renderFileList);
 
   return {
     renderFileList,
     appendFileListItems
   };
-})();
+})(DOMElements);

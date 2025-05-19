@@ -4,14 +4,13 @@ const AppState = (function () {
       storagePaths: ["/storage/emulated/0"],
       pathHistory: [],
       fileSystemData: [],
-      subfolderData: {},
       selectedItems: new Set(),
       filteredItems: []
     },
     ui: {
       selectionMode: false,
       currentPage: 1,
-      pageSize: 20,
+      pageSize: 12,
       searchActive: false
     }
   };
