@@ -1,8 +1,9 @@
 const I18nManager = (function (env) {
   const state = {
-    currentLocale: "pt-BR",
+    currentLocale: "en-US",
     translations: {},
-    fallbackLocale: "en-US"
+    fallbackLocale: "en-US",
+    supportedLocales: ["pt-BR", "en-US", "es-ES"]
   };
 
   const translations = {
@@ -118,10 +119,9 @@ const I18nManager = (function (env) {
   }
 
   function loadTranslations(locale) {
-    const supportedLocales = ["pt-BR", "en-US", "es-ES"];
     const baseLocale = locale.split("-")[0];
     const matchedLocale =
-      supportedLocales.find(l => l.startsWith(baseLocale)) ||
+      state.supportedLocales.find(l => l.startsWith(baseLocale)) ||
       state.fallbackLocale;
 
     state.translations = translations;
@@ -131,20 +131,27 @@ const I18nManager = (function (env) {
   function initialize() {
     const systemLocale = detectSystemLocale();
     state.currentLocale = loadTranslations(systemLocale);
-    applyTranslationsToDOM();
+
+    setTimeout(() => {
+      applyTranslationsToDOM();
+    }, 0);
   }
 
   function applyTranslationsToDOM() {
-    document.querySelectorAll("[data-i18n]").forEach(element => {
-      const key = element.getAttribute("data-i18n");
-      const text = translate(key);
-      if (text) {
-        if (element.tagName === "INPUT" && element.placeholder) {
-          element.placeholder = text;
-        } else {
-          element.textContent = text;
+    const elements = document.querySelectorAll("[data-i18n]");
+
+    elements.forEach((element, index) => {
+      requestAnimationFrame(() => {
+        const key = element.getAttribute("data-i18n");
+        const text = translate(key);
+        if (text) {
+          if (element.tagName === "INPUT" && element.placeholder) {
+            element.placeholder = text;
+          } else {
+            element.textContent = text;
+          }
         }
-      }
+      });
     });
   }
 
