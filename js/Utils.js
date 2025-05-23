@@ -128,20 +128,25 @@ const Utils = (function (env) {
   }
 
   function getFileExtension(filename) {
-    const parts = filename.split(".");
-    return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
+    // This robust version is adopted from ThumbnailManager.js
+    // It handles cases with no dots, leading dots, and returns lowercase.
+    if (typeof filename !== 'string') return "";
+    const lastDotIndex = filename.lastIndexOf(".");
+    if (lastDotIndex < 0 || lastDotIndex === filename.length - 1) { // No extension or ends with a dot
+      return "";
+    }
+    return filename.slice(lastDotIndex + 1).toLowerCase();
   }
 
-  function isElementConnected(element) {
-    return element && element.isConnected;
-  }
+  // isElementConnected was here, moved to DOMElements.js
+  // getExtensionFontSize was here, moved to FileListRenderer.js
 
   return {
-    getExtensionFontSize,
+    // getExtensionFontSize removed from exports
     escapeIdValue,
     formatBytes,
     formatTimestamp,
-    getFileExtension,
-    isElementConnected
+    getFileExtension
+    // isElementConnected removed from exports
   };
 })(currentEnvironment);

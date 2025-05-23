@@ -8,8 +8,17 @@ const SortManager = (function () {
   let lastSortedResult = null;
   let lastSortData = {
     items: null,
-    preference: null
+    preference: null,
+    folders: null, // Added to match reset in event listener
+    files: null   // Added to match reset in event listener
   };
+
+  if (typeof AppState !== 'undefined' && AppState.on) { // Check if AppState is available
+    AppState.on("PINNED_ITEMS_CHANGE", () => {
+      lastSortedResult = null;
+      lastSortData = { items: null, preference: null, folders: null, files: null }; // Reset all relevant parts of lastSortData
+    });
+  }
 
   const comparators = {
     nameAsc: (a, b) => a.name.localeCompare(b.name),
@@ -47,80 +56,90 @@ const SortManager = (function () {
     AppState.emit("SORT_PREFERENCE_CHANGE");
   }
 
-  function separateItemsByType(items) {
-    if (lastSortData.items === items) {
-      return {
-        folders: lastSortData.folders,
-        files: lastSortData.files
-      };
-    }
-
-    const folders = [];
-    const files = [];
-
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type === "d") {
-        folders.push(items[i]);
-      } else {
-        files.push(items[i]);
-      }
-    }
-
-    lastSortData.items = items;
-    lastSortData.folders = folders;
-    lastSortData.files = files;
-
-    return { folders, files };
-  }
+  // The separateItemsByType function was here. It has been removed as it was orphaned.
 
   function sortItems(items) {
     const preference = getSortPreference();
 
     if (
       lastSortedResult &&
-      lastSortData.items === items &&
-      lastSortData.preference === preference
+      lastSortData.items === items && // This check needs to be more robust if we keep items in lastSortData
+      lastSortData.preference === preference 
+      // Add pinned items signature check here if not using event-based invalidation
     ) {
       return lastSortedResult;
     }
 
-    const { folders, files } = separateItemsByType(items);
+    const pinnedDirectories = [];
+    const otherDirectories = [];
+    const allFiles = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      // Assuming FileManager.buildFullPath is globally available or correctly imported/passed
+      const fullPath = typeof FileManager !== 'undefined' ? FileManager.buildFullPath(item.name) : item.name;
+
+
+      if (item.type === "d") { // It's a directory
+        // Assuming AppState.isPinned is globally available
+        if (typeof AppState !== 'undefined' && AppState.isPinned(fullPath)) {
+          pinnedDirectories.push(item);
+        } else {
+          otherDirectories.push(item);
+        }
+      } else { // It's a file
+        allFiles.push(item);
+      }
+    }
 
     switch (preference) {
       case "name_asc":
-        folders.sort(comparators.nameAsc);
-        files.sort(comparators.nameAsc);
+        pinnedDirectories.sort(comparators.nameAsc);
+        otherDirectories.sort(comparators.nameAsc);
+        allFiles.sort(comparators.nameAsc);
         break;
       case "name_desc":
-        folders.sort(comparators.nameDesc);
-        files.sort(comparators.nameDesc);
+        pinnedDirectories.sort(comparators.nameDesc);
+        otherDirectories.sort(comparators.nameDesc);
+        allFiles.sort(comparators.nameDesc);
         break;
       case "size_asc":
-        folders.sort(comparators.nameAsc);
-        files.sort(comparators.sizeAsc);
+        pinnedDirectories.sort(comparators.nameAsc); // Pinned dirs by name
+        otherDirectories.sort(comparators.nameAsc); // Other dirs by name
+        allFiles.sort(comparators.sizeAsc);       // Files by size
         break;
       case "size_desc":
-        folders.sort(comparators.nameAsc);
-        files.sort(comparators.sizeDesc);
+        pinnedDirectories.sort(comparators.nameAsc); // Pinned dirs by name
+        otherDirectories.sort(comparators.nameAsc); // Other dirs by name
+        allFiles.sort(comparators.sizeDesc);      // Files by size
         break;
       case "date_desc":
-        folders.sort(comparators.dateDesc);
-        files.sort(comparators.dateDesc);
+        pinnedDirectories.sort(comparators.dateDesc);
+        otherDirectories.sort(comparators.dateDesc);
+        allFiles.sort(comparators.dateDesc);
         break;
       case "date_asc":
-        folders.sort(comparators.dateAsc);
-        files.sort(comparators.dateAsc);
+        pinnedDirectories.sort(comparators.dateAsc);
+        otherDirectories.sort(comparators.dateAsc);
+        allFiles.sort(comparators.dateAsc);
         break;
-      default:
-        folders.sort(comparators.nameAsc);
-        files.sort(comparators.nameAsc);
+      default: // Fallback to name_asc
+        pinnedDirectories.sort(comparators.nameAsc);
+        otherDirectories.sort(comparators.nameAsc);
+        allFiles.sort(comparators.nameAsc);
     }
-
+    
+    // Update cache information
+    lastSortData.items = items; // Store the original items reference for cache validation
     lastSortData.preference = preference;
-    lastSortedResult = [...folders, ...files];
+    // lastSortData.pinnedSignature could be added here if not using event-based invalidation
+
+    lastSortedResult = [...pinnedDirectories, ...otherDirectories, ...allFiles];
 
     return lastSortedResult;
   }
+
+  // The separateItemsByType function was confirmed to be unused and has been removed.
 
   return {
     getSortPreference,

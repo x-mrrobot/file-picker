@@ -5,7 +5,8 @@ const AppState = (function () {
       pathHistory: [],
       fileSystemData: [],
       selectedItems: new Set(),
-      filteredItems: []
+      filteredItems: [],
+      pinnedItems: new Set()
     },
     ui: {
       selectionMode: false,
@@ -76,6 +77,20 @@ const AppState = (function () {
     emit("FILTERED_ITEMS_CHANGE");
   }
 
+  function addPinnedItem(filePath) {
+    state.file.pinnedItems.add(filePath);
+    emit("PINNED_ITEMS_CHANGE");
+  }
+
+  function removePinnedItem(filePath) {
+    state.file.pinnedItems.delete(filePath);
+    emit("PINNED_ITEMS_CHANGE");
+  }
+
+  function isPinned(filePath) {
+    return state.file.pinnedItems.has(filePath);
+  }
+
   return {
     ...state,
     on,
@@ -87,6 +102,9 @@ const AppState = (function () {
     setFileSystemData,
     toggleSelectionMode,
     toggleSearchMode,
-    setFilteredItems
+    setFilteredItems,
+    addPinnedItem,
+    removePinnedItem,
+    isPinned
   };
 })();

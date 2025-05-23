@@ -21,9 +21,14 @@ const DOMElements = (function () {
     closeSearchButton: getElement("#close-search-btn")
   };
 
+  // Function moved from Utils.js for better cohesion
+  function isElementConnected(element) {
+    return element && element.isConnected;
+  }
+
   function updateElement(query, updateFn) {
     const element = getElement(query);
-    if (Utils.isElementConnected(element)) {
+    if (isElementConnected(element)) { // Call local function
       updateFn(element);
     }
   }

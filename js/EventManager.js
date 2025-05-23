@@ -32,11 +32,30 @@ const EventManager = (function (env) {
       const fileItem = event.target.closest(".item-entry");
       if (!fileItem) return;
 
-      if (!AppState.ui.selectionMode) {
-        SelectionManager.toggleMode();
+      const isDirectory = fileItem.classList.contains("folder");
+
+      if (isDirectory) {
+        const itemName = fileItem.getAttribute("data-name");
+        const fullPath = FileManager.buildFullPath(itemName);
+        const isCurrentlyPinned = AppState.isPinned(fullPath);
+
+        if (isCurrentlyPinned) {
+          if (confirm(I18nManager.translate("unpin_directory_confirm", { name: itemName }))) {
+            AppState.removePinnedItem(fullPath);
+          }
+        } else {
+          if (confirm(I18nManager.translate("pin_directory_confirm", { name: itemName }))) {
+            AppState.addPinnedItem(fullPath);
+          }
+        }
+      } else {
+        // Original context menu behavior for files
+        if (!AppState.ui.selectionMode) {
+          SelectionManager.toggleMode();
+        }
+        const itemName = fileItem.dataset.name;
+        SelectionManager.toggleItem(itemName);
       }
-      const itemName = fileItem.dataset.name;
-      SelectionManager.toggleItem(itemName);
     });
 
     dom.storageContainer.addEventListener("click", event => {

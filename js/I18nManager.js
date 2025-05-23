@@ -39,7 +39,9 @@ const I18nManager = (function (env) {
       day_wednesday: "Quarta",
       day_thursday: "Quinta",
       day_friday: "Sexta",
-      day_saturday: "Sábado"
+      day_saturday: "Sábado",
+      pin_directory_confirm: "Fixar diretório '{name}'?",
+      unpin_directory_confirm: "Desafixar diretório '{name}'?"
     },
     "es-ES": {
       app_title: "Selector de Archivos",
@@ -74,7 +76,9 @@ const I18nManager = (function (env) {
       day_wednesday: "Miércoles",
       day_thursday: "Jueves",
       day_friday: "Viernes",
-      day_saturday: "Sábado"
+      day_saturday: "Sábado",
+      pin_directory_confirm: "Fijar directorio '{name}'?",
+      unpin_directory_confirm: "Quitar directorio '{name}'?"
     },
     "en-US": {
       app_title: "File Picker",
@@ -109,7 +113,9 @@ const I18nManager = (function (env) {
       day_wednesday: "Wednesday",
       day_thursday: "Thursday",
       day_friday: "Friday",
-      day_saturday: "Saturday"
+      day_saturday: "Saturday",
+      pin_directory_confirm: "Pin directory '{name}'?",
+      unpin_directory_confirm: "Unpin directory '{name}'?"
     }
   };
 
