@@ -1,10 +1,10 @@
 const Utils = (function (env) {
   function getExtensionFontSize(extension) {
     const length = extension.length;
-    if (length <= 2) return "1.2rem";
-    if (length <= 3) return "1rem";
-    if (length <= 4) return "0.8rem";
-    if (length <= 6) return "0.7rem";
+    if (length <= 2) return "1.4rem";
+    if (length <= 3) return "1.2rem";
+    if (length <= 4) return "1rem";
+    if (length <= 6) return "0.8rem";
     if (length <= 8) return "0.6rem";
     return "0.4rem";
   }
@@ -57,6 +57,10 @@ const Utils = (function (env) {
     return (
       parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + " " + sizes[i]
     );
+  }
+
+  function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
   function formatTimestamp(timestamp) {
@@ -119,11 +123,9 @@ const Utils = (function (env) {
     const minute = String(date.getMinutes()).padStart(2, "0");
 
     if (year === currentYear) {
-      return `${I18nManager.capitalize(month)} ${day}, ${hour}:${minute}`;
+      return `${capitalize(month)} ${day}, ${hour}:${minute}`;
     } else {
-      return `${I18nManager.capitalize(
-        month
-      )} ${day}, ${year} ${hour}:${minute}`;
+      return `${capitalize(month)} ${day}, ${year} ${hour}:${minute}`;
     }
   }
 

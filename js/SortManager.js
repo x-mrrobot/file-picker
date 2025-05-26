@@ -1,15 +1,6 @@
 const SortManager = (function () {
   const SORT_PREFERENCE_KEY = "@file-picker:sort-preference";
-  const defaultSortPreference = "name_asc";
-
-  let currentSortPreference =
-    localStorage.getItem(SORT_PREFERENCE_KEY) || defaultSortPreference;
-
-  let lastSortedResult = null;
-  let lastSortData = {
-    items: null,
-    preference: null
-  };
+  let currentSortPreference = "name_asc";
 
   const comparators = {
     nameAsc: (a, b) => a.name.localeCompare(b.name),
@@ -32,28 +23,22 @@ const SortManager = (function () {
     return currentSortPreference;
   }
 
+  function saveSortPreference(preference) {
+    localStorage.setItem(SORT_PREFERENCE_KEY, preference);
+  }
+
   function setSortPreference(preference) {
-    if (currentSortPreference === preference) return;
+    if (!preference || currentSortPreference === preference) return;
 
     currentSortPreference = preference;
-    localStorage.setItem(SORT_PREFERENCE_KEY, preference);
 
-    lastSortedResult = null;
-    lastSortData = {
-      items: null,
-      preference: null
-    };
+    saveSortPreference(preference);
 
-    AppState.emit("SORT_PREFERENCE_CHANGE");
+    EventBus.emit("SORT_PREFERENCE_CHANGE", preference);
   }
 
   function separateItemsByType(items) {
-    if (lastSortData.items === items) {
-      return {
-        folders: lastSortData.folders,
-        files: lastSortData.files
-      };
-    }
+    if (!items || !items.length) return { folders: [], files: [] };
 
     const folders = [];
     const files = [];
@@ -66,26 +51,10 @@ const SortManager = (function () {
       }
     }
 
-    lastSortData.items = items;
-    lastSortData.folders = folders;
-    lastSortData.files = files;
-
     return { folders, files };
   }
 
-  function sortItems(items) {
-    const preference = getSortPreference();
-
-    if (
-      lastSortedResult &&
-      lastSortData.items === items &&
-      lastSortData.preference === preference
-    ) {
-      return lastSortedResult;
-    }
-
-    const { folders, files } = separateItemsByType(items);
-
+  function sortByPreference(folders, files, comparators, preference) {
     switch (preference) {
       case "name_asc":
         folders.sort(comparators.nameAsc);
@@ -115,16 +84,39 @@ const SortManager = (function () {
         folders.sort(comparators.nameAsc);
         files.sort(comparators.nameAsc);
     }
-
-    lastSortData.preference = preference;
-    lastSortedResult = [...folders, ...files];
-
-    return lastSortedResult;
   }
+
+  function sortItems(items) {
+    if (!items || !items.length) return items;
+
+    const preference = getSortPreference();
+    const { folders, files } = separateItemsByType(items);
+
+    sortByPreference(folders, files, comparators, preference);
+
+    return [...folders, ...files];
+  }
+
+  function sortAndUpdateFileList() {
+    const currentPath = NavigationManager.getCurrentPath();
+    const sortedData = sortItems(AppState.file.fileSystemData);
+    AppState.setFileSystemData(sortedData, currentPath);
+  }
+
+  function initialize() {
+    const savedPreference = localStorage.getItem(SORT_PREFERENCE_KEY);
+    if (savedPreference) {
+      currentSortPreference = savedPreference;
+    }
+    UIRenderer.updateActiveSortButton(currentSortPreference);
+  }
+
+  initialize();
 
   return {
     getSortPreference,
     setSortPreference,
-    sortItems
+    sortItems,
+    sortAndUpdateFileList
   };
 })();

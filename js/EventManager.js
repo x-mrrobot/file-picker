@@ -1,68 +1,83 @@
-const EventManager = (function (env) {
-  function setupEventListeners() {
-    const dom = DOMElements;
-    let scrollTimer = null;
+const EventManager = (function (env, dom) {
+  function setupEventBusListeners() {
+    EventBus.on("STORAGE_DEVICES_CHANGE", storageDevices => {
+      UIRenderer.displayStorageDevices(storageDevices);
+    });
 
-    dom.currentPath.addEventListener("click", () => {
+    EventBus.on("FILE_SYSTEM_CHANGE", (fileData, directory) => {
+      FileListRenderer.renderFileList();
+      CacheManager.save(directory, { fileData });
+    });
+
+    EventBus.on("FILTERED_ITEMS_CHANGE", () => {
+      FileListRenderer.renderFileList();
+    });
+
+    EventBus.on("PATH_HISTORY_CHANGE", () => {
+      UIRenderer.updateActiveStorageDevice();
+      UIRenderer.updatePathDisplay();
+    });
+
+    EventBus.on("SELECTION_MODE_CHANGE", () => {
+      UIRenderer.updateSelectionDisplay();
+      UIRenderer.updateSelectionCounter();
+    });
+
+    EventBus.on("SEARCH_MODE_CHANGE", searchMode => {
+      UIRenderer.updateSearchUI(searchMode);
+    });
+
+    EventBus.on("SORT_PREFERENCE_CHANGE", sortPreference => {
+      UIRenderer.updateActiveSortButton(sortPreference);
+      SortManager.sortAndUpdateFileList();
+    });
+  }
+
+  function setupNavigationEvents() {
+    dom.currentPath.addEventListener("click", event => {
       const pathItem = event.target.closest("[data-index]");
       if (!pathItem) return;
 
-      const pathIndex = pathItem.dataset.index;
-      NavigationManager.goToPathIndex(Number(pathIndex));
+      const pathIndex = parseInt(pathItem.dataset.index, 10);
+      NavigationManager.goToPathIndex(pathIndex);
     });
+
     dom.backButton.addEventListener("click", () => NavigationManager.goBack());
-
-    dom.fileList.addEventListener("click", event => {
-      const fileItem = event.target.closest(".item-entry");
-      if (!fileItem) return;
-
-      const itemName = fileItem.getAttribute("data-name");
-
-      if (AppState.ui.selectionMode) {
-        SelectionManager.toggleItem(itemName);
-        return;
-      }
-      if (fileItem.classList.contains("folder")) {
-        NavigationManager.goToFolder(itemName);
-      }
-    });
-
-    dom.fileList.addEventListener("contextmenu", event => {
-      event.preventDefault();
-      const fileItem = event.target.closest(".item-entry");
-      if (!fileItem) return;
-
-      if (!AppState.ui.selectionMode) {
-        SelectionManager.toggleMode();
-      }
-      const itemName = fileItem.dataset.name;
-      SelectionManager.toggleItem(itemName);
-    });
 
     dom.storageContainer.addEventListener("click", event => {
       const storageDevice = event.target.closest(".storage-device");
       if (storageDevice) {
-        const storagePath = storageDevice.getAttribute("data-storage");
+        const storagePath = storageDevice.dataset.storage;
         AppState.setPathHistory([storagePath]);
         NavigationManager.navigateToPath(storagePath);
       }
     });
+  }
 
+  function setupSearchEvents() {
+    let searchTimer = null;
+
+    dom.searchButton.addEventListener("click", () => {
+      SearchManager.openSearch();
+    });
+
+    dom.closeSearchButton.addEventListener("click", () => {
+      SearchManager.closeSearch();
+    });
+
+    dom.searchInput.addEventListener("input", event => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        const filteredItems = SearchManager.filterItems(event.target.value);
+        AppState.setFilteredItems(filteredItems);
+      }, 500);
+    });
+  }
+
+  function setupSortingEvents() {
     dom.sortButton.addEventListener("click", () => {
       dom.sortDropdown.classList.toggle("show");
-      if (dom.sortDropdown.classList.contains("show")) {
-        const currentSort = SortManager.getSortPreference();
-        const buttons = dom.sortDropdown.querySelectorAll("button");
-        buttons.forEach(button => {
-          button.classList.remove("active");
-          if (button.dataset.sort === currentSort) {
-            button.classList.add("active");
-          }
-        });
-        UIRenderer.toggleOverlay(true);
-      } else {
-        UIRenderer.toggleOverlay(false);
-      }
+      UIRenderer.toggleOverlay(true);
     });
 
     dom.sortDropdown.addEventListener("click", event => {
@@ -79,17 +94,54 @@ const EventManager = (function (env) {
       dom.sortDropdown.classList.remove("show");
       UIRenderer.toggleOverlay(false);
     });
+  }
 
-    dom.fileList.addEventListener("scroll", function () {
+  function setupFileListEvents() {
+    let scrollTimer = null;
+
+    dom.fileList.addEventListener("click", event => {
+      const fileItem = event.target.closest(".item-entry");
+      if (!fileItem) return;
+
+      const itemName = fileItem.dataset.name;
+
+      if (AppState.ui.selectionMode) {
+        SelectionManager.toggleItem(itemName);
+        return;
+      }
+
+      if (fileItem.classList.contains("folder")) {
+        NavigationManager.goToFolder(itemName);
+      } else {
+        AppState.toggleSelectionMode(true);
+        SelectionManager.toggleItem(itemName);
+      }
+    });
+
+    dom.fileList.addEventListener("contextmenu", event => {
+      event.preventDefault();
+      const fileItem = event.target.closest(".item-entry");
+      if (!fileItem) return;
+
+      if (!AppState.ui.selectionMode) {
+        AppState.toggleSelectionMode(true);
+      }
+
+      const itemName = fileItem.dataset.name;
+      SelectionManager.toggleItem(itemName);
+    });
+
+    dom.fileList.addEventListener("scroll", () => {
       dom.fileList.classList.add("scrolling");
-
       clearTimeout(scrollTimer);
 
-      scrollTimer = setTimeout(function () {
+      scrollTimer = setTimeout(() => {
         dom.fileList.classList.remove("scrolling");
       }, 1000);
     });
+  }
 
+  function setupSelectionEvents() {
     dom.selectionCounter.addEventListener("click", () => {
       SelectionManager.toggleAllItems();
     });
@@ -100,28 +152,24 @@ const EventManager = (function (env) {
     });
 
     dom.selectionToggle.addEventListener("click", () => {
-      SelectionManager.toggleMode();
+      AppState.toggleSelectionMode();
     });
 
     dom.copyButton.addEventListener("click", () => {
       SelectionManager.copySelectedToClipboard();
     });
+  }
 
-    dom.searchButton.addEventListener("click", () => {
-      SearchManager.openSearch();
-    });
-
-    dom.closeSearchButton.addEventListener("click", () => {
-      SearchManager.closeSearch();
-    });
-
-    dom.searchInput.addEventListener("input", event => {
-      const filteredItems = SearchManager.filterItems(event.target.value);
-      AppState.setFilteredItems(filteredItems);
-    });
+  function setupEventListeners() {
+    setupEventBusListeners();
+    setupNavigationEvents();
+    setupSearchEvents();
+    setupSortingEvents();
+    setupFileListEvents();
+    setupSelectionEvents();
   }
 
   return {
     setupEventListeners
   };
-})(currentEnvironment);
+})(currentEnvironment, DOMElements);

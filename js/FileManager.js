@@ -4,8 +4,8 @@ const FileManager = (env => {
     return currentPath ? `${currentPath}/${itemName}` : itemName;
   }
 
-  function getSdCard() {
-    return env.execute("get_sd_card");
+  function getSdCardPath() {
+    return env.execute("get_sd_card_path");
   }
 
   function parseDirectoryOutput(rawData) {
@@ -20,7 +20,7 @@ const FileManager = (env => {
     return JSON.parse(`[${rawData}]`);
   }
 
-  function getFileList(directory) {
+  function getFileSystemData(directory) {
     const cachedData = CacheManager.get(directory);
     if (cachedData) {
       return cachedData.fileData;
@@ -28,14 +28,14 @@ const FileManager = (env => {
 
     const output = env.execute("list_directory", `"${directory}"`);
     const parsedData = parseDirectoryOutput(output);
-    CacheManager.save(directory, parsedData, {});
-    return parsedData;
+    const sortedData = SortManager.sortItems(parsedData);
+
+    return sortedData;
   }
 
   return {
     buildFullPath,
-    getSdCard,
-    parseDirectoryOutput,
-    getFileList
+    getSdCardPath,
+    getFileSystemData
   };
 })(currentEnvironment);

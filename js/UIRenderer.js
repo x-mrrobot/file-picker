@@ -1,30 +1,4 @@
 const UIRenderer = (function (dom) {
-  function updateActiveStorageDevice() {
-    const currentPath = NavigationManager.getCurrentPath();
-    const storageDevices = document.querySelectorAll(".storage-device");
-
-    if (storageDevices.length < 2) return;
-
-    storageDevices.forEach(device => {
-      const devicePath = device.dataset.storage;
-
-      if (currentPath.startsWith(devicePath)) {
-        device.classList.add("active");
-      } else {
-        device.classList.remove("active");
-      }
-    });
-  }
-
-  function updateSubfolderCount(subfolder, itemCount) {
-    dom.updateElement(`[data-subfolder="${subfolder}"]`, element => {
-      element.textContent = I18nManager.translatePlural(
-        "items_count",
-        itemCount
-      );
-    });
-  }
-
   function createStorageDeviceElement(devicePath) {
     const isInternalDevice = devicePath.includes("emulated/0");
 
@@ -60,12 +34,29 @@ const UIRenderer = (function (dom) {
     return deviceElement;
   }
 
-  function displayStorageDevices() {
-    const devicePaths = AppState.file.storagePaths;
+  function displayStorageDevices(storageDevices) {
+    const storageDeviceElements = storageDevices.map(
+      createStorageDeviceElement
+    );
 
-    const deviceElements = devicePaths.map(createStorageDeviceElement);
+    dom.storageContainer.append(...storageDeviceElements);
+  }
 
-    dom.storageContainer.append(...deviceElements);
+  function updateActiveStorageDevice() {
+    const currentPath = NavigationManager.getCurrentPath();
+    const storageDevices = document.querySelectorAll(".storage-device");
+
+    if (storageDevices.length < 2) return;
+
+    storageDevices.forEach(device => {
+      const devicePath = device.dataset.storage;
+
+      if (currentPath.startsWith(devicePath)) {
+        device.classList.add("active");
+      } else {
+        device.classList.remove("active");
+      }
+    });
   }
 
   function updatePathDisplay() {
@@ -88,6 +79,38 @@ const UIRenderer = (function (dom) {
 
     requestAnimationFrame(() => {
       dom.currentPath.scrollLeft = dom.currentPath.scrollWidth;
+    });
+  }
+
+  function updateSearchUI(active) {
+    dom.currentPath.classList.toggle("hidden", active);
+    dom.searchContainer.classList.toggle("active", active);
+    dom.searchButton.classList.toggle("hidden", active);
+
+    if (active) {
+      dom.searchInput.focus();
+    } else {
+      dom.searchInput.value = "";
+    }
+  }
+
+  function updateActiveSortButton(sortType) {
+    const sortButtons = dom.sortDropdown.querySelectorAll(".dropdown-button");
+
+    sortButtons.forEach(btn => {
+      btn.classList.remove("active");
+      if (btn.dataset.sort === sortType) {
+        btn.classList.add("active");
+      }
+    });
+  }
+
+  function updateSubfolderCount(subfolder, itemCount) {
+    dom.updateElement(`[data-subfolder="${subfolder}"]`, element => {
+      element.textContent = I18nManager.translatePlural(
+        "items_count",
+        itemCount
+      );
     });
   }
 
@@ -118,11 +141,6 @@ const UIRenderer = (function (dom) {
     dom.overlay.classList.remove("active");
   }
 
-  function updateSelectionCounter() {
-    dom.selectionCounter.textContent =
-      SelectionManager.getSelectedItems().length;
-  }
-
   function updateItemCheckbox(itemName) {
     const escapedName = Utils.escapeIdValue(itemName);
     dom.updateElement(`#check-${escapedName}`, checkbox => {
@@ -130,47 +148,22 @@ const UIRenderer = (function (dom) {
     });
   }
 
-  function updateSearchUI(active) {
-    if (active) {
-      dom.currentPath.classList.add("hidden");
-      dom.searchContainer.classList.add("active");
-      dom.searchButton.classList.add("hidden");
-      dom.searchInput.focus();
-    } else {
-      dom.currentPath.classList.remove("hidden");
-      dom.searchContainer.classList.remove("active");
-      dom.searchButton.classList.remove("hidden");
-      dom.searchInput.value = "";
-    }
+  function updateSelectionCounter() {
+    dom.selectionCounter.textContent =
+      SelectionManager.getSelectedItems().length;
   }
 
-  AppState.on("PATH_HISTORY_CHANGE", () => {
-    updateActiveStorageDevice();
-    updatePathDisplay();
-  });
-
-  AppState.on("SELECTION_CHANGE", () => {
-    updateSelectionCounter();
-  });
-
-  AppState.on("SELECTION_MODE_CHANGE", () => {
-    updateSelectionDisplay();
-    updateSelectionCounter();
-  });
-
-  AppState.on("SEARCH_MODE_CHANGE", () => {
-    updateSearchUI(AppState.ui.searchActive);
-  });
-
   return {
-    updateSubfolderCount,
     displayStorageDevices,
+    updateActiveStorageDevice,
     updatePathDisplay,
+    updateSearchUI,
+    updateActiveSortButton,
+    updateSubfolderCount,
     showLoadingIndicator,
     updateSelectionDisplay,
     toggleOverlay,
-    updateSelectionCounter,
     updateItemCheckbox,
-    updateSearchUI
+    updateSelectionCounter
   };
 })(DOMElements);

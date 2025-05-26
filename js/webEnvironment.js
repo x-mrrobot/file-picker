@@ -1,11 +1,11 @@
 const webEnvironment = {
   name: "web",
   languageCode: "en-US",
-  darkThemeEnabled: true,
+  isDarkModeEnabled: true,
 
   execute(cmd, ...args) {
     const commands = {
-      get_sd_card: function () {
+      get_sd_card_path: function () {
         return "/storage/E4F1-7FD9";
       },
       list_directory: function () {

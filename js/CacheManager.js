@@ -1,4 +1,6 @@
 const CacheManager = (function () {
+  const FILE_PIKER_KEY = "@file-picker";
+
   const config = {
     enabled: true,
     maxEntries: 20,
@@ -6,11 +8,11 @@ const CacheManager = (function () {
   };
 
   function getCache() {
-    return JSON.parse(localStorage.getItem("@file-picker") || "{}");
+    return JSON.parse(localStorage.getItem(FILE_PIKER_KEY) || "{}");
   }
 
   function saveCache(cacheData) {
-    localStorage.setItem("@file-picker", JSON.stringify(cacheData));
+    localStorage.setItem(FILE_PIKER_KEY, JSON.stringify(cacheData));
   }
 
   function isValid(path) {
@@ -23,21 +25,15 @@ const CacheManager = (function () {
   function get(path) {
     if (!config.enabled || !isValid(path)) return null;
     const entry = getCache()[path];
-    return entry
-      ? { fileData: entry.fileData, subfolderData: entry.subfolderData }
-      : null;
+    return entry;
   }
 
-  function save(path, fileData, subfolderData = {}) {
+  function save(path, data) {
     if (!config.enabled) return;
 
     const cache = getCache();
 
-    cache[path] = {
-      fileData,
-      subfolderData,
-      timestamp: Date.now()
-    };
+    cache[path] = Object.assign(cache[path] || {}, data);
 
     const entries = Object.entries(cache)
       .sort((a, b) => b[1].timestamp - a[1].timestamp)
@@ -50,14 +46,6 @@ const CacheManager = (function () {
     if (!config.enabled) return;
 
     const cache = getCache();
-
-    if (!cache[path]) {
-      cache[path] = {
-        fileData: null,
-        subfolderData: {},
-        timestamp: Date.now()
-      };
-    }
 
     cache[path].subfolderData = subfolderData;
     cache[path].timestamp = Date.now();
@@ -73,7 +61,7 @@ const CacheManager = (function () {
         saveCache(cache);
       }
     } else {
-      localStorage.removeItem("@file-picker");
+      localStorage.removeItem(FILE_PIKER_KEY);
     }
   }
 
@@ -81,7 +69,6 @@ const CacheManager = (function () {
     get,
     save,
     updateCacheEntry,
-    clear,
-    isValid
+    clear
   };
 })();

@@ -1,38 +1,38 @@
 const App = (function (env) {
-  function applyTheme() {
-    const body = document.querySelector("body");
-
-    const darkThemeEnabled = env.darkThemeEnabled;
-    if (darkThemeEnabled) {
-      body.classList.remove("light-theme");
-    } else {
+  function applySystemTheme() {
+    if (!env.isDarkModeEnabled) {
+      const body = document.querySelector("body");
       body.classList.add("light-theme");
     }
   }
 
-  function loadSdCard() {
-    const sdCardPath = FileManager.getSdCard();
+  function setupStorageDevices() {
+    const INTERNAL_STORAGE_PATH = "/storage/emulated/0";
+
+    const storageDevices = [INTERNAL_STORAGE_PATH];
+
+    const sdCardPath = FileManager.getSdCardPath();
     if (sdCardPath) {
-      AppState.addStoragePath(sdCardPath);
+      storageDevices.push(sdCardPath);
     }
-    UIRenderer.displayStorageDevices();
+    AppState.setStorageDevices(storageDevices);
   }
 
-  function initialize() {
-    applyTheme();
-    I18nManager.initialize();
-    loadSdCard();
+  function init() {
+    applySystemTheme();
+    I18nManager.init();
     EventManager.setupEventListeners();
+    setupStorageDevices();
 
-    NavigationManager.goToFolder(AppState.file.storagePaths[0]);
+    NavigationManager.goToFolder("/storage/emulated/0");
+
     PaginationManager.init();
     PullToRefreshManager.init();
   }
 
   return {
-    initialize,
-    goBack: NavigationManager.goBack
+    init
   };
 })(currentEnvironment);
 
-App.initialize();
+App.init();

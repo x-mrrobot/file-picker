@@ -103,13 +103,12 @@ const FileListRenderer = (function (dom) {
   function getItemsToRender() {
     if (AppState.ui.searchActive) {
       const filteredItems = AppState.file.filteredItems;
-      return SortManager.sortItems(filteredItems);
+      return filteredItems;
     } else {
       const allItems = AppState.file.fileSystemData;
-      const sortedItems = SortManager.sortItems(allItems);
       const currentPage = AppState.ui.currentPage;
       const endIndex = currentPage * AppState.ui.pageSize;
-      return sortedItems.slice(0, endIndex);
+      return allItems.slice(0, endIndex);
     }
   }
 
@@ -117,7 +116,6 @@ const FileListRenderer = (function (dom) {
     dom.fileList.innerHTML = "";
 
     const itemsToRender = getItemsToRender();
-
     if (itemsToRender.length === 0) {
       renderEmptyState();
       return;
@@ -139,17 +137,12 @@ const FileListRenderer = (function (dom) {
     const endIndex = currentPage * pageSize;
 
     const allItems = AppState.file.fileSystemData;
-    const allSortedItems = SortManager.sortItems(allItems);
-    const itemsToAppend = allSortedItems.slice(startIndex, endIndex);
+    const itemsToAppend = allItems.slice(startIndex, endIndex);
 
     if (itemsToAppend.length > 0) {
       renderItems(itemsToAppend);
     }
   }
-
-  AppState.on("FILE_SYSTEM_CHANGE", renderFileList);
-  AppState.on("SORT_PREFERENCE_CHANGE", renderFileList);
-  AppState.on("FILTERED_ITEMS_CHANGE", renderFileList);
 
   return {
     renderFileList,

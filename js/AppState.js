@@ -1,7 +1,7 @@
 const AppState = (function () {
   const state = {
     file: {
-      storagePaths: ["/storage/emulated/0"],
+      storageDevices: [],
       pathHistory: [],
       fileSystemData: [],
       selectedItems: new Set(),
@@ -10,48 +10,34 @@ const AppState = (function () {
     ui: {
       selectionMode: false,
       currentPage: 1,
-      pageSize: 12,
+      pageSize: 15,
       searchActive: false
     }
   };
 
-  const listeners = new Map();
-
-  function on(event, callback) {
-    if (!listeners.has(event)) {
-      listeners.set(event, []);
-    }
-    listeners.get(event).push(callback);
-  }
-
-  function emit(event, data) {
-    if (listeners.has(event)) {
-      listeners.get(event).forEach(callback => callback(data));
-    }
+  function setStorageDevices(storageDevices) {
+    state.file.storageDevices = storageDevices;
+    EventBus.emit("STORAGE_DEVICES_CHANGE", storageDevices);
   }
 
   function setPathHistory(history) {
     state.file.pathHistory = history;
-    emit("PATH_HISTORY_CHANGE");
-  }
-
-  function addStoragePath(path) {
-    state.file.storagePaths.push(path);
+    EventBus.emit("PATH_HISTORY_CHANGE");
   }
 
   function clearSelectedItems() {
     state.file.selectedItems.clear();
-    emit("SELECTION_CHANGE");
+    EventBus.emit("SELECTION_MODE_CHANGE");
   }
 
   function resetPage() {
     state.ui.currentPage = 1;
   }
 
-  function setFileSystemData(data) {
+  function setFileSystemData(data, directory) {
     state.file.fileSystemData = data;
     state.file.filteredItems = data;
-    emit("FILE_SYSTEM_CHANGE");
+    EventBus.emit("FILE_SYSTEM_CHANGE", data, directory);
   }
 
   function toggleSelectionMode(force) {
@@ -62,26 +48,23 @@ const AppState = (function () {
       state.file.selectedItems.clear();
     }
 
-    emit("SELECTION_MODE_CHANGE");
+    EventBus.emit("SELECTION_MODE_CHANGE");
   }
 
-  function toggleSearchMode(active) {
-    state.ui.searchActive =
-      active !== undefined ? active : !state.ui.searchActive;
-    emit("SEARCH_MODE_CHANGE", state.ui.searchActive);
+  function toggleSearchMode(force) {
+    state.ui.searchActive = force;
+    EventBus.emit("SEARCH_MODE_CHANGE", force);
   }
 
   function setFilteredItems(items) {
     state.file.filteredItems = items;
-    emit("FILTERED_ITEMS_CHANGE");
+    EventBus.emit("FILTERED_ITEMS_CHANGE");
   }
 
   return {
     ...state,
-    on,
-    emit,
+    setStorageDevices,
     setPathHistory,
-    addStoragePath,
     clearSelectedItems,
     resetPage,
     setFileSystemData,

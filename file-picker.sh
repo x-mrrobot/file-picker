@@ -1,6 +1,6 @@
 #!/bin/sh
 
-get_sd_card() {
+get_sd_card_path() {
   local sd_card_path=$(cat /proc/mounts | sed -n 's/.*\(\/storage\/[0-9A-F]\{4\}-[0-9A-F]\{4\}\).*/\1/p');
   echo "$sd_card_path"
 }
@@ -23,8 +23,8 @@ get_subfolder_item_count(){
 }
 
 case "$1" in 
-  "get_sd_card")
-    get_sd_card
+  "get_sd_card_path")
+    get_sd_card_path
     ;;
   "list_directory")
     list_directory "$2"

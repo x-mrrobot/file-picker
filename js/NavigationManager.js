@@ -9,8 +9,8 @@ const NavigationManager = (function (env) {
     AppState.clearSelectedItems();
     AppState.resetPage();
 
-    const fileSystemData = FileManager.getFileList(newPath);
-    AppState.setFileSystemData(fileSystemData);
+    const fileSystemData = FileManager.getFileSystemData(newPath);
+    AppState.setFileSystemData(fileSystemData, newPath);
   }
 
   function goToFolder(folderName) {
@@ -72,7 +72,7 @@ const NavigationManager = (function (env) {
       return;
     }
 
-    env.terminate(CacheManager.clear);
+    env.terminate();
   }
 
   return {

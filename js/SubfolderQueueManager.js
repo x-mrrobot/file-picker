@@ -125,7 +125,12 @@ const SubfolderQueueManager = (function (env) {
 
   function loadCachedData(directoryPath) {
     const cachedData = CacheManager.get(directoryPath);
-    Object.assign(subfoldersCache[directoryPath], cachedData.subfolderData);
+    if (cachedData) {
+      Object.assign(
+        subfoldersCache[directoryPath],
+        cachedData.subfolderData || {}
+      );
+    }
   }
 
   function processSubfolders(subfolders, isVisibleFn) {

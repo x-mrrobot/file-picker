@@ -1,8 +1,4 @@
 const SelectionManager = (function (env) {
-  function toggleMode() {
-    AppState.toggleSelectionMode();
-  }
-
   function toggleItem(itemName) {
     const fullItemPath = FileManager.buildFullPath(itemName);
     if (AppState.file.selectedItems.has(fullItemPath)) {
@@ -16,7 +12,7 @@ const SelectionManager = (function (env) {
       AppState.file.selectedItems.add(fullItemPath);
     }
     UIRenderer.updateItemCheckbox(itemName);
-    AppState.emit("SELECTION_CHANGE");
+    EventBus.emit("SELECTION_MODE_CHANGE");
   }
 
   function toggleAllItems() {
@@ -24,12 +20,22 @@ const SelectionManager = (function (env) {
       ? AppState.file.filteredItems
       : AppState.file.fileSystemData;
 
+    if (!itemsToProcess.length) return;
+
     const selectedCount = SelectionManager.getSelectedItems().length;
-    const shouldSelectItems = selectedCount !== itemsToProcess.length;
+    const totalItems = itemsToProcess.length;
+
+    if (selectedCount === totalItems) {
+      AppState.toggleSelectionMode(false);
+      return;
+    }
+
+    const shouldSelectAll = selectedCount < totalItems;
 
     itemsToProcess.forEach(fileItem => {
       const fullItemPath = FileManager.buildFullPath(fileItem.name);
-      if (shouldSelectItems) {
+
+      if (shouldSelectAll) {
         AppState.file.selectedItems.add(fullItemPath);
       } else {
         AppState.file.selectedItems.delete(fullItemPath);
@@ -37,11 +43,13 @@ const SelectionManager = (function (env) {
 
       const safeItemName = Utils.escapeIdValue(fileItem.name);
       DOMElements.updateElement(`#check-${safeItemName}`, checkbox => {
-        checkbox.checked = shouldSelectItems;
+        if (checkbox) {
+          checkbox.checked = shouldSelectAll;
+        }
       });
     });
 
-    AppState.emit("SELECTION_CHANGE");
+    EventBus.emit("SELECTION_MODE_CHANGE");
   }
 
   function getSelectedItems() {
@@ -67,7 +75,6 @@ const SelectionManager = (function (env) {
   }
 
   return {
-    toggleMode,
     toggleItem,
     toggleAllItems,
     getSelectedItems,

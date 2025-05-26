@@ -1,15 +1,16 @@
 const I18nManager = (function (env) {
+  const FALLBACK_LOCALE = "en-US";
+
   const state = {
     currentLocale: "en-US",
     translations: {},
-    fallbackLocale: "en-US",
     supportedLocales: ["pt-BR", "en-US", "es-ES"]
   };
 
   const translations = {
     "pt-BR": {
       app_title: "Seletor de Arquivos",
-      app_close: "Fechando aplicação...",
+      app_close: "[✓] Limpando cache...\n[✓] Fechando aplicação...",
       search_placeholder: "Pesquisar arquivos e pastas...",
       internal_storage: "Armazenamento",
       sd_card: "Cartão SD",
@@ -44,7 +45,7 @@ const I18nManager = (function (env) {
     },
     "es-ES": {
       app_title: "Selector de Archivos",
-      app_close: "Cerrando aplicación...",
+      app_close: "[✓] Limpiando caché...\n[✓] Cerrando aplicación...",
       search_placeholder: "Buscar archivos y carpetas...",
       internal_storage: "Almacenamiento",
       sd_card: "Tarjeta SD",
@@ -79,7 +80,7 @@ const I18nManager = (function (env) {
     },
     "en-US": {
       app_title: "File Picker",
-      app_close: "Closing application...",
+      app_close: "[✓] Clearing caches...\n[✓] Closing application...",
       search_placeholder: "Search files and folders...",
       internal_storage: "Internal Storage",
       sd_card: "SD Card",
@@ -114,27 +115,38 @@ const I18nManager = (function (env) {
     }
   };
 
+  function getCurrentLocale() {
+    return state.currentLocale;
+  }
+
+  function translate(key, params = {}) {
+    const currentTranslations = state.translations;
+    let text = currentTranslations[key] || key;
+
+    Object.keys(params).forEach(param => {
+      text = text.replace(new RegExp(`{${param}}`, "g"), params[param]);
+    });
+
+    return text;
+  }
+
+  function translatePlural(key, count) {
+    const pluralKey = count === 1 ? key : `${key}_plural`;
+    return translate(pluralKey, { count });
+  }
+
   function detectSystemLocale() {
-    return env.languageCode || navigator.language || state.fallbackLocale;
+    return env.languageCode || navigator.language || FALLBACK_LOCALE;
   }
 
   function loadTranslations(locale) {
     const baseLocale = locale.split("-")[0];
     const matchedLocale =
-      state.supportedLocales.find(l => l.startsWith(baseLocale)) ||
-      state.fallbackLocale;
+      state.supportedLocales.find(lang => lang.startsWith(baseLocale)) ||
+      FALLBACK_LOCALE;
 
-    state.translations = translations;
+    state.translations = translations[matchedLocale];
     return matchedLocale;
-  }
-
-  function initialize() {
-    const systemLocale = detectSystemLocale();
-    state.currentLocale = loadTranslations(systemLocale);
-
-    setTimeout(() => {
-      applyTranslationsToDOM();
-    }, 0);
   }
 
   function applyTranslationsToDOM() {
@@ -155,31 +167,19 @@ const I18nManager = (function (env) {
     });
   }
 
-  function translate(key, params = {}) {
-    const currentTranslations = state.translations[state.currentLocale];
-    let text = currentTranslations[key] || key;
+  function init() {
+    const systemLocale = detectSystemLocale();
+    state.currentLocale = loadTranslations(systemLocale);
 
-    Object.keys(params).forEach(param => {
-      text = text.replace(new RegExp(`{${param}}`, "g"), params[param]);
-    });
-
-    return text;
-  }
-
-  function translatePlural(key, count) {
-    const pluralKey = count === 1 ? key : `${key}_plural`;
-    return translate(pluralKey, { count });
-  }
-
-  function capitalize(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+    setTimeout(() => {
+      applyTranslationsToDOM();
+    }, 0);
   }
 
   return {
-    initialize,
+    init,
+    getCurrentLocale,
     translate,
-    translatePlural,
-    capitalize,
-    getCurrentLocale: () => state.currentLocale
+    translatePlural
   };
 })(currentEnvironment);
