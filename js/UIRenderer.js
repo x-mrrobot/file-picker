@@ -18,12 +18,8 @@ const UIRenderer = (function (dom) {
     <div class="device-icon">
       ${
         isInternalDevice
-          ? `<svg class="storage-icon" viewBox="0 0 320 512" fill="currentColor">
-              <path d="M272 0H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h224c26.5 0 48-21.5 48-48V48c0-26.5-21.5-48-48-48zM160 480c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/>
-            </svg>`
-          : `<svg class="storage-icon" viewBox="0 0 384 512" fill="currentColor">
-              <path d="M320 0H128L0 128v320c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64zM160 160h-48V64h48v96zm80 0h-48V64h48v96zm80 0h-48V64h48v96z"/>
-            </svg>`
+          ? IconManager.getIcon("Phone", "storage-icon")
+          : IconManager.getIcon("SDCard", "storage-icon")
       }
     </div>
     <h2 class="device-name">
@@ -148,6 +144,14 @@ const UIRenderer = (function (dom) {
     });
   }
 
+  function updateSelectionModeIcon() {
+    const selectionIcon = AppState.ui.selectionMode
+      ? IconManager.getIcon("Close", "footer-icon")
+      : IconManager.getIcon("Check", "footer-icon");
+
+    dom.selectionToggle.innerHTML = selectionIcon;
+  }
+
   function updateSelectionCounter() {
     dom.selectionCounter.textContent =
       SelectionManager.getSelectedItems().length;
@@ -164,6 +168,7 @@ const UIRenderer = (function (dom) {
     updateSelectionDisplay,
     toggleOverlay,
     updateItemCheckbox,
+    updateSelectionModeIcon,
     updateSelectionCounter
   };
 })(DOMElements);

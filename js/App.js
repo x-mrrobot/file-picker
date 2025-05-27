@@ -20,6 +20,7 @@ const App = (function (env) {
 
   function init() {
     applySystemTheme();
+    IconManager.applyIcons();
     I18nManager.init();
     EventManager.setupEventListeners();
     setupStorageDevices();

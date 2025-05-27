@@ -6,7 +6,6 @@ const NavigationManager = (function (env) {
   function navigateToPath(newPath) {
     UIRenderer.showLoadingIndicator();
 
-    AppState.clearSelectedItems();
     AppState.resetPage();
 
     const fileSystemData = FileManager.getFileSystemData(newPath);

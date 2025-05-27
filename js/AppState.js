@@ -25,11 +25,6 @@ const AppState = (function () {
     EventBus.emit("PATH_HISTORY_CHANGE");
   }
 
-  function clearSelectedItems() {
-    state.file.selectedItems.clear();
-    EventBus.emit("SELECTION_MODE_CHANGE");
-  }
-
   function resetPage() {
     state.ui.currentPage = 1;
   }
@@ -65,7 +60,6 @@ const AppState = (function () {
     ...state,
     setStorageDevices,
     setPathHistory,
-    clearSelectedItems,
     resetPage,
     setFileSystemData,
     toggleSelectionMode,

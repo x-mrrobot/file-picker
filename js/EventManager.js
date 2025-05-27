@@ -19,6 +19,7 @@ const EventManager = (function (env, dom) {
     });
 
     EventBus.on("SELECTION_MODE_CHANGE", () => {
+      UIRenderer.updateSelectionModeIcon();
       UIRenderer.updateSelectionDisplay();
       UIRenderer.updateSelectionCounter();
     });

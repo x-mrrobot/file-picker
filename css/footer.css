@@ -44,12 +44,3 @@
 .action-btn:active {
   transform: scale(0.9);
 }
-
-.floating-btn svg:last-child,
-.selection-active .floating-btn svg:first-child {
-  display: none;
-}
-
-.selection-active .floating-btn svg:last-child {
-  display: flex;
-}
