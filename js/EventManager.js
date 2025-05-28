@@ -4,9 +4,8 @@ const EventManager = (function (env, dom) {
       UIRenderer.displayStorageDevices(storageDevices);
     });
 
-    EventBus.on("FILE_SYSTEM_CHANGE", (fileData, directory) => {
+    EventBus.on("FILE_SYSTEM_CHANGE", () => {
       FileListRenderer.renderFileList();
-      CacheManager.save(directory, { fileData });
     });
 
     EventBus.on("FILTERED_ITEMS_CHANGE", () => {

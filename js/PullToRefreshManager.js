@@ -14,6 +14,10 @@ const PullToRefreshManager = (function () {
     loadingIndicator: null
   };
 
+  function getIsRefreshing() {
+    return state.isRefreshing;
+  }
+
   function createLoadingIndicator() {
     const indicator = document.createElement("div");
     indicator.className = "pull-to-refresh-indicator";
@@ -26,7 +30,6 @@ const PullToRefreshManager = (function () {
 
     setTimeout(() => {
       const currentPath = NavigationManager.getCurrentPath();
-      CacheManager.clear(currentPath);
       NavigationManager.navigateToPath(currentPath);
       hideLoadingIndicator();
     }, config.loadingTimeout);
@@ -123,5 +126,8 @@ const PullToRefreshManager = (function () {
     DOMElements.fileList.addEventListener("touchcancel", handleTouchEnd);
   }
 
-  return { init };
+  return {
+    init,
+    getIsRefreshing
+  };
 })();

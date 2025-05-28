@@ -9,7 +9,7 @@ const NavigationManager = (function (env) {
     AppState.resetPage();
 
     const fileSystemData = FileManager.getFileSystemData(newPath);
-    AppState.setFileSystemData(fileSystemData, newPath);
+    AppState.setFileSystemData(fileSystemData);
   }
 
   function goToFolder(folderName) {

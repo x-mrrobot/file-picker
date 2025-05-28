@@ -1,4 +1,4 @@
-const FileManager = (env => {
+const FileManager = (function (env) {
   function buildFullPath(itemName) {
     const currentPath = AppState.file.pathHistory.join("/");
     return currentPath ? `${currentPath}/${itemName}` : itemName;
@@ -22,7 +22,9 @@ const FileManager = (env => {
 
   function getFileSystemData(directory) {
     const cachedData = CacheManager.get(directory);
-    if (cachedData) {
+    const isRefreshing = PullToRefreshManager.getIsRefreshing();
+
+    if (!isRefreshing && cachedData?.fileData) {
       return cachedData.fileData;
     }
 
@@ -30,6 +32,7 @@ const FileManager = (env => {
     const parsedData = parseDirectoryOutput(output);
     const sortedData = SortManager.sortItems(parsedData);
 
+    CacheManager.save(directory, { fileData: sortedData });
     return sortedData;
   }
 

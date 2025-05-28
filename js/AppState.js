@@ -29,10 +29,10 @@ const AppState = (function () {
     state.ui.currentPage = 1;
   }
 
-  function setFileSystemData(data, directory) {
+  function setFileSystemData(data) {
     state.file.fileSystemData = data;
     state.file.filteredItems = data;
-    EventBus.emit("FILE_SYSTEM_CHANGE", data, directory);
+    EventBus.emit("FILE_SYSTEM_CHANGE");
   }
 
   function toggleSelectionMode(force) {

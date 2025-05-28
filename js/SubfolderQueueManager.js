@@ -7,10 +7,9 @@ const SubfolderQueueManager = (function (env) {
   let subfoldersCache = {};
 
   function saveCacheToStorage(directoryPath) {
-    CacheManager.updateCacheEntry(
-      directoryPath,
-      subfoldersCache[directoryPath]
-    );
+    CacheManager.save(directoryPath, {
+      subfolderData: subfoldersCache[directoryPath]
+    });
     // console.log(
     //   `[subfoldersCache] Updated cache for directory: ${directoryPath}`
     // );
@@ -125,11 +124,8 @@ const SubfolderQueueManager = (function (env) {
 
   function loadCachedData(directoryPath) {
     const cachedData = CacheManager.get(directoryPath);
-    if (cachedData) {
-      Object.assign(
-        subfoldersCache[directoryPath],
-        cachedData.subfolderData || {}
-      );
+    if (cachedData && cachedData.subfolderData) {
+      Object.assign(subfoldersCache[directoryPath], cachedData.subfolderData);
     }
   }
 

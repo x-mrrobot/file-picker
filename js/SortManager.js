@@ -100,7 +100,8 @@ const SortManager = (function () {
   function sortAndUpdateFileList() {
     const currentPath = NavigationManager.getCurrentPath();
     const sortedData = sortItems(AppState.file.fileSystemData);
-    AppState.setFileSystemData(sortedData, currentPath);
+    CacheManager.save(currentPath, { fileData: sortedData });
+    AppState.setFileSystemData(sortedData);
   }
 
   function initialize() {

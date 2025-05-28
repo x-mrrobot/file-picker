@@ -32,30 +32,25 @@ const CacheManager = (function () {
     if (!config.enabled) return;
 
     const cache = getCache();
+    const timestamp = Date.now();
 
-    cache[path] = Object.assign(cache[path] || {}, data);
+    cache[path] = {
+      ...(cache[path] || {}),
+      ...data,
+      timestamp
+    };
 
-    const entries = Object.entries(cache)
-      .sort((a, b) => b[1].timestamp - a[1].timestamp)
+    const sortedEntries = Object.entries(cache)
+      .sort(([, a], [, b]) => (b?.timestamp || 0) - (a?.timestamp || 0))
       .slice(0, config.maxEntries);
 
-    saveCache(Object.fromEntries(entries));
-  }
-
-  function updateCacheEntry(path, subfolderData) {
-    if (!config.enabled) return;
-
-    const cache = getCache();
-
-    cache[path].subfolderData = subfolderData;
-    cache[path].timestamp = Date.now();
-
-    saveCache(cache);
+    saveCache(Object.fromEntries(sortedEntries));
   }
 
   function clear(specificPath = null) {
     if (specificPath) {
       const cache = getCache();
+
       if (cache[specificPath]) {
         delete cache[specificPath];
         saveCache(cache);
@@ -68,7 +63,6 @@ const CacheManager = (function () {
   return {
     get,
     save,
-    updateCacheEntry,
     clear
   };
 })();
