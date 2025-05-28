@@ -6,7 +6,7 @@
   display: none;
   width: 2rem;
   height: 2rem;
-  border: 0.15rem solid rgba(var(--text-muted-rgb), 0.6);
+  border: 0.15rem solid rgba(var(--text-muted-rgb), 0.3);
   border-radius: var(--radius-md);
   transition: background-color 0.2s ease;
 }

@@ -24,10 +24,11 @@ Um seletor de arquivos e pastas leve, sem dependências, feito com HTML5, CSS3 e
 
 ---
 
-## Funcionalidades
+## Lista de Recursos
 
 - **Navegação hierárquica** com trilhas e botão de voltar
-- **Listagem com Metadados**: tamanho e contagem de itens por pasta
+- **Listagem com Metadados** (contagem de itens por pasta, tamanho e data de modificação)
+- **Metódos de ordenação** para arquivos e pastas
 - **Seleção múltipla** de arquivos e pastas e cópia dos caminhos
 - **Busca local** por arquivos e pastas no diretório atual
 - **Renderização otimizada** com scroll infinito
@@ -71,7 +72,7 @@ Para usar o seletor de arquivos diretamente no Tasker:
 
 1. Instale o Tasker na [Play Store](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm)
 2. **Importe o projeto** na [TaskerNet](https://taskernet.com/shares/?user=AS35m8k%2FEQCE%2BJiPvkN1cJcjBE7Yh%2B%2Fa8zZeifxINYS7E94XnS26HrYYgsweBVnbf2VB9WJdrS5k&id=Project%3AFILE+PICKER)
-3. **Mostre a cena** executando a tarefa **FP - FILE PICKER**
+3. **Mostre a cena** executando a tarefa **FP - PICK FILES UI**
 4. **Receba o resultado da seleção** na aba toque no link do webview
 
 ### Uso Integrado em outros ambientes
@@ -80,7 +81,7 @@ Para usar o seletor de arquivos diretamente no Tasker:
    - Executar comandos via `file-picker.sh`
    - Expor propriedades:
      - `languageCode: "en-US"`
-     - `darkThemeEnabled: true`
+     - `isDarkModeEnabled: true`
    - Expor métodos:
      - `execute(command, ...args)`
      - `notify(message)`
@@ -88,7 +89,7 @@ Para usar o seletor de arquivos diretamente no Tasker:
      - `submitSelection(items)`
 2. Comandos esperados no script:
    - `list_directory "caminho"`
-   - `get_sd_card`
+   - `get_sd_card_path`
    - `get_subfolder_item_count "caminho"`
 
 ---
@@ -96,23 +97,29 @@ Para usar o seletor de arquivos diretamente no Tasker:
 ## Estrutura do Projeto
 
 ```
-.
+/file-picker
+│
 ├── index.html
+│
 ├── css/
 │   ├── variables.css
 │   ├── reset.css
 │   ├── loading.css
 │   ├── header.css
+│   ├── sort.css
 │   ├── navigation.css
 │   ├── search.css
 │   ├── file-list.css
 │   ├── checkbox.css
 │   └── footer.css
+│
 ├── js/
 │   ├── fileSystemData.js
 │   ├── webEnvironment.js
-│   ├── Utils.js
 │   ├── EnvironmentManager.js
+│   ├── EventBus.js
+│   ├── Utils.js
+│   ├── IconManager.js
 │   ├── I18nManager.js
 │   ├── AppState.js
 │   ├── CacheManager.js
@@ -122,11 +129,14 @@ Para usar o seletor de arquivos diretamente no Tasker:
 │   ├── SearchManager.js
 │   ├── SelectionManager.js
 │   ├── PaginationManager.js
+│   ├── SubfolderQueueManager.js
 │   ├── FileListRenderer.js
-│   ├── PullToRefreshManager.js
 │   ├── UIRenderer.js
+│   ├── SortManager.js
+│   ├── PullToRefreshManager.js
 │   ├── EventManager.js
 │   └── App.js
+│
 └── file-picker.sh
 ```
 
